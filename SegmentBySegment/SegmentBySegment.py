@@ -1465,7 +1465,13 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 #        err_phase_prop = propagate_error_phase(err_beta_start, err_alfa_start, delta_phase, beta_start, alfa_start)
 
         if switch == 0:
+            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
+            beta_s = bme.BETX[bme.indx[name]]
+            alfa_s = bme.ALFX[bme.indx[name]]
 
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
+        
             alfame = bme.ALFX[bme.indx[name]]
             ealfame = sqrt((bme.ERRALFX[bme.indx[name]]**2+bme.STDALFX[bme.indx[name]]**2)/2)
             #beta me
@@ -1480,6 +1486,14 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             print >> filexa, name, s, alfame, ealfame, aep, eaep, amo, smo, err_alfa_prop
             print >> filex, name, s, betame, ebetame, betaa, ebetaa, bep, ebep, betam, smo, err_beta_prop
         else:
+            
+            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
+            beta_s = modelp.BETX[modelp.indx[name]]
+            alfa_s = modelp.ALFX[modelp.indx[name]]
+
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
+            
             #print "Adding", name," to the summary ",namename
 
             print >> filexa, name, s, aep, eaep, amo, smo
@@ -1554,15 +1568,16 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         #TODO: Andy, please check the correct deltaphase.
 #        delta_phase = (phasey.PHASEY[phasex.indx[name]] - phasex.PHASEY[phasey.indx[first_bpm]]) %1
 #        delta_phase = abs(phasey.PHASEY[phasey.indx[name]] - phasey.PHASEY[phasey.indx[first_bpm]]) %1
-        delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
-        beta_s = bme.BETY[bme.indx[name]]
-        alfa_s = bme.ALFY[bme.indx[name]]
 
-        err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
-        err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
 
 
         if switch == 0:
+            delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
+            beta_s = bme.BETY[bme.indx[name]]
+            alfa_s = bme.ALFY[bme.indx[name]]
+
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
                 #beta me
             betaa = bmea.BETY[bmea.indx[name]]
             ebetaa = bmea.BETYSTD[bmea.indx[name]]
@@ -1578,6 +1593,13 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
             print >> fileya, name, s, alfame, ealfame, aep, eaep, amo, smo, err_alfa_prop
         else:
+            delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
+            beta_s = modelp.BETY[modelp.indx[name]]
+            alfa_s = modelp.ALFY[modelp.indx[name]]
+
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
+            
             betap = modelp.BETY[modelp.indx[name]]
             betab = modelb.BETY[modelb.indx[name]]
             bep = (1/(betape+betabe))*(betape*betap+betabe*betab)
