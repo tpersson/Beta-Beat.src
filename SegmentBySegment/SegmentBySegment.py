@@ -1363,8 +1363,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
 
             # beta
-            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S"
-            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
+            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S ERRBETXP2"
+            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             #coupling
             print >> filesum_c,"* NAME   S   f1001 f1001re  f1001im    f1010   f1010re   f1010im  f1001_PLAY ef1001_play   f1001re_PLAY  f1001im_PLAY    f1010_PLAY ef1010_play   f1010re_PLAY   f1010im_PLAY C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor S_MODEL"
@@ -1395,11 +1395,11 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         print >> filexa,"* NAME S ALFX ERRALFX ALFXP ERRALFXP ALFMDL MODEL_S ERRALFXP2"
         print >> filexa,"$ %s %le %le %le %le %le %le %le %le"
     else:
-        print >> filex,"* NAME S BETXP ERRBETXP BETXMDL MODEL_S"
-        print >> filex,"$ %s %le %le %le %le %le"
+        print >> filex,"* NAME S BETXP ERRBETXP BETXMDL MODEL_S ERRBETXP2"
+        print >> filex,"$ %s %le %le %le %le %le %le"
 
-        print >> filexa,"* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S"
-        print >> filexa,"$ %s %le %le %le %le %le"
+        print >> filexa,"* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S ERRALFXP2"
+        print >> filexa,"$ %s %le %le %le %le %le %le"
 
     bme = betah[0] # measurement
     bmea = betah[9] # measurement amp
@@ -1491,11 +1491,11 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             
             #print "Adding", name," to the summary ",namename
 
-            print >> filexa, name, s, aep, eaep, amo, smo
-            print >> filex, name, s, bep, ebep, betam, smo
+            print >> filexa, name, s, aep, eaep, amo, smo, err_alfa_prop
+            print >> filex, name, s, bep, ebep, betam, smo, err_beta_prop
 
             if namename in name:
-                fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))
+                fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(err_beta_prop, 4))
 
     filex.close()
     filexa.close()
@@ -1505,15 +1505,15 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
     fileya = open(path+"sbsalfay_"+namename+".out","w")
 
     if switch == 0:
-        print >> filey,"* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S"
-        print >> filey,"$ %s %le %le %le %le %le %le %le %le %le "
-        print >> fileya,"* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S"
-        print >> fileya,"$ %s %le %le %le %le %le %le %le"
+        print >> filey,"* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S ERRBETY2"
+        print >> filey,"$ %s %le %le %le %le %le %le %le %le %le  %le"
+        print >> fileya,"* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S ERRALFY2"
+        print >> fileya,"$ %s %le %le %le %le %le %le %le %le"
     else:
-        print >> filey,"* NAME S BETY ERRBETY BETYMDL MDL_S"
-        print >> filey,"$ %s %le %le %le %le %le"
-        print >> fileya,"* NAME S ALFA ERRALFY ALFYMDL MDL_S"
-        print >> fileya,"$ %s %le %le %le %le %le"
+        print >> filey,"* NAME S BETY ERRBETY BETYMDL MDL_S ERRBETY2"
+        print >> filey,"$ %s %le %le %le %le %le %le"
+        print >> fileya,"* NAME S ALFA ERRALFY ALFYMDL MDL_S ERRALFY2"
+        print >> fileya,"$ %s %le %le %le %le %le %le"
 
 
     bme = betav[0] # measurement
@@ -1601,8 +1601,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             alfap = modelp.ALFY[modelp.indx[name]]
             alfab = modelb.ALFY[modelb.indx[name]]
             aep = (1/(alfape+alfabe))*(alfape*alfap+alfabe*alfab)
-            print >> fileya, name, s, aep, eaep, amo, smo
-            print >> filey, name, s, bep, ebep, betam, smo
+            print >> fileya, name, s, aep, eaep, amo, smo, err_alfa_prop
+            print >> filey, name, s, bep, ebep, betam, smo, err_beta_prop
 
             if namename in name:
                 print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2), round(err_beta_prop, 4)
