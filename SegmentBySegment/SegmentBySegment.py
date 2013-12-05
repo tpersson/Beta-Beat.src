@@ -1283,6 +1283,9 @@ def propagate_error_alfa(errb0, erra0, dphi, alfs, bet0, alf0):
 def propagate_error_phase(errb0, erra0, dphi, bet0, alf0):
     return math.sqrt((((1/2.*np.cos(4*np.pi*dphi)*alf0/bet0)-(1/2.*np.sin(4*np.pi*dphi)/bet0)-(1/2.*alf0/bet0))*errb0)**2+((-(1/2.*np.cos(4*np.pi*dphi))+(1/2.))*erra0)**2)/(2*np.pi)
 
+def propagate_error_dispersion(errD0,errb0, erra0, dphi, bet0, alf0):
+    return math.sqrt((((1/2.*np.cos(4*np.pi*dphi)*alf0/bet0)-(1/2.*np.sin(4*np.pi*dphi)/bet0)-(1/2.*alf0/bet0))*errb0)**2+((-(1/2.*np.cos(4*np.pi*dphi))+(1/2.))*erra0)**2)/(2*np.pi)
+
 
 def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,model,modelcor,modelp,modelb,path,switch,accel):
     '''
@@ -1452,7 +1455,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         err_beta_start = sqrt(bme.ERRBETX[bme.indx[first_bpm]]**2+bme.STDBETX[bme.indx[first_bpm]]**2)
         err_alfa_start = sqrt(bme.ERRALFX[bme.indx[first_bpm]]**2+bme.STDALFX[bme.indx[first_bpm]]**2)
         #TODO: Andy, probably you have to insert an abs(x)
-        delta_phase = (phasex.PHASEX[phasex.indx[name]] - phasex.PHASEX[phasex.indx[first_bpm]]) %1
+#        delta_phase = (phasex.PHASEX[phasex.indx[name]] - phasex.PHASEX[phasex.indx[first_bpm]]) %1
+        delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
         beta_s = bme.BETX[bme.indx[name]]
         alfa_s = bme.ALFX[bme.indx[name]]
 
@@ -1549,7 +1553,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         err_alfa_start = sqrt(bme.ERRALFY[bme.indx[first_bpm]]**2+bme.STDALFY[bme.indx[first_bpm]]**2)
         #TODO: Andy, please check the correct deltaphase.
 #        delta_phase = (phasey.PHASEY[phasex.indx[name]] - phasex.PHASEY[phasey.indx[first_bpm]]) %1
-        delta_phase = abs(phasey.PHASEY[phasey.indx[name]] - phasey.PHASEY[phasey.indx[first_bpm]]) %1
+#        delta_phase = abs(phasey.PHASEY[phasey.indx[name]] - phasey.PHASEY[phasey.indx[first_bpm]]) %1
+        delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
         beta_s = bme.BETY[bme.indx[name]]
         alfa_s = bme.ALFY[bme.indx[name]]
 
@@ -1583,7 +1588,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             print >> filey, name, s, bep, ebep, betam, smo
 
             if namename in name:
-                print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2)
+                print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2), round(err_beta_prop, 4)
 
 
     filey.close()
