@@ -1456,12 +1456,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         err_alfa_start = sqrt(bme.ERRALFX[bme.indx[first_bpm]]**2+bme.STDALFX[bme.indx[first_bpm]]**2)
         #TODO: Andy, probably you have to insert an abs(x)
 #        delta_phase = (phasex.PHASEX[phasex.indx[name]] - phasex.PHASEX[phasex.indx[first_bpm]]) %1
-        delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
-        beta_s = bme.BETX[bme.indx[name]]
-        alfa_s = bme.ALFX[bme.indx[name]]
 
-        err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
-        err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
 #        err_phase_prop = propagate_error_phase(err_beta_start, err_alfa_start, delta_phase, beta_start, alfa_start)
 
         if switch == 0:
