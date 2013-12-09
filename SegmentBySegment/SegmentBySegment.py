@@ -1496,7 +1496,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             ebx = 3.9878
             ax = 3.4666
             eax = 0.087699
-            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx['BPMYB.5R4.B1']]) %1
+            delta_phase = (model.MUX[model.indx['BPMYB.5R4.B1']] - model.MUX[model.indx[name]] ) %1
             back_err = propagate_error_beta(ebx, eax, delta_phase, beta_s, bx, ax)
 
             print >> filexa, name, s, aep, eaep, amo, smo, err_alfa_prop
