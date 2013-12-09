@@ -1363,8 +1363,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
 
             # beta
-            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S ERRBETXP2"
-            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
+            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL ERRBETXP2 BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S ERRBETYP2"
+            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             #coupling
             print >> filesum_c,"* NAME   S   f1001 f1001re  f1001im    f1010   f1010re   f1010im  f1001_PLAY ef1001_play   f1001re_PLAY  f1001im_PLAY    f1010_PLAY ef1010_play   f1010re_PLAY   f1010im_PLAY C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor S_MODEL"
@@ -1460,7 +1460,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 #        err_phase_prop = propagate_error_phase(err_beta_start, err_alfa_start, delta_phase, beta_start, alfa_start)
 
         if switch == 0:
-            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
+            delta_phase = (phasex.PHASEX[phasex.indx[name]] - phasex.PHASEX[phasex.indx[first_bpm]]) %1
             beta_s = bme.BETX[bme.indx[name]]
             alfa_s = bme.ALFX[bme.indx[name]]
 
@@ -1490,9 +1490,17 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
             
             #print "Adding", name," to the summary ",namename
+            
+            #only for a test
+            bx = 196.08
+            ebx = 3.9878
+            ax = 3.4666
+            eax = 0.087699
+            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx['BPMYB.5R4.B1']]) %1
+            back_err = propagate_error_beta(ebx, eax, delta_phase, beta_s, bx, ax)
 
             print >> filexa, name, s, aep, eaep, amo, smo, err_alfa_prop
-            print >> filex, name, s, bep, ebep, betam, smo, err_beta_prop
+            print >> filex, name, s, bep, ebep, betam, smo, err_beta_prop, back_err
 
             if namename in name:
                 fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(err_beta_prop, 4))
@@ -1567,7 +1575,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
 
         if switch == 0:
-            delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
+            delta_phase = (phasey.PHASEY[phasex.indx[name]] - phasex.PHASEY[phasey.indx[first_bpm]]) %1
             beta_s = bme.BETY[bme.indx[name]]
             alfa_s = bme.ALFY[bme.indx[name]]
 
