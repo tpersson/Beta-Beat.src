@@ -1492,9 +1492,11 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             #print "Adding", name," to the summary ",namename
             
             #only for a test
+            beta_s = modelb.BETX[modelb.indx[name]]
+            alfa_s = modelb.ALFX[modelb.indx[name]]
             bx = 196.08
             ebx = 3.9878
-            ax = -3.4666
+            ax = 3.4666
             eax = 0.087699
             delta_phase = (model.MUX[model.indx['BPMYB.5R4.B1']] - model.MUX[model.indx[name]] ) %1
             back_err = propagate_error_beta(ebx, eax, delta_phase, beta_s, bx, ax)
