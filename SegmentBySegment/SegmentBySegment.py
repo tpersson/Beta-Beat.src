@@ -1482,7 +1482,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             print >> filex, name, s, betame, ebetame, betaa, ebetaa, bep, ebep, betam, smo, err_beta_prop
         else:
             
-            delta_phase = (model.MUX[model.indx[name]] - model.MUX[model.indx[first_bpm]]) %1
+            delta_phase = (modelp.MUX[modelp.indx[name]] ) %1
             beta_s = modelp.BETX[modelp.indx[name]]
             alfa_s = modelp.ALFX[modelp.indx[name]]
 
@@ -1498,7 +1498,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             ebx = 3.9878
             ax = 3.4666
             eax = 0.087699
-            delta_phase = (model.MUX[model.indx['BPMYB.5R4.B1']] - model.MUX[model.indx[name]] ) %1
+            delta_phase = ( modelb.MUX[modelb.indx[name]] ) %1
             back_err = propagate_error_beta(ebx, eax, delta_phase, beta_s, bx, ax)
 
             print >> filexa, name, s, aep, eaep, amo, smo, err_alfa_prop
