@@ -1363,8 +1363,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
 
             # beta
-            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL ERRBETXP2 BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S ERRBETYP2"
-            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
+            print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL BETX2 ERRBETXP2 BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S BETY2 ERRBETYP2"
+            print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             #coupling
             print >> filesum_c,"* NAME   S   f1001 f1001re  f1001im    f1010   f1010re   f1010im  f1001_PLAY ef1001_play   f1001re_PLAY  f1001im_PLAY    f1010_PLAY ef1010_play   f1010re_PLAY   f1010im_PLAY C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor S_MODEL"
@@ -1389,17 +1389,17 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
     filexa = open(path+"sbsalfax_"+namename+".out","w")
 
     if switch == 0:
-        print >> filex,"* NAME S BETX ERRBETX BETXAMP ERRBETXAMP BETXP ERRBETXP BETXMDL MODEL_S ERRBETXP2"
-        print >> filex,"$ %s %le %le %le %le %le  %le %le %le %le %le"
+        print >> filex,"* NAME S BETX ERRBETX BETXAMP ERRBETXAMP BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
+        print >> filex,"$ %s %le %le %le %le %le  %le %le %le %le %le %le"
 
-        print >> filexa,"* NAME S ALFX ERRALFX ALFXP ERRALFXP ALFMDL MODEL_S ERRALFXP2"
-        print >> filexa,"$ %s %le %le %le %le %le %le %le %le"
+        print >> filexa,"* NAME S ALFX ERRALFX ALFXP ERRALFXP ALFMDL MODEL_S ALFX2 ERRALFXP2"
+        print >> filexa,"$ %s %le %le %le %le %le %le %le %le %le"
     else:
-        print >> filex,"* NAME S BETXP ERRBETXP BETXMDL MODEL_S ERRBETXP2"
-        print >> filex,"$ %s %le %le %le %le %le %le"
+        print >> filex,"* NAME S BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
+        print >> filex,"$ %s %le %le %le %le %le %le %le"
 
-        print >> filexa,"* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S ERRALFXP2"
-        print >> filexa,"$ %s %le %le %le %le %le %le"
+        print >> filexa,"* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S ALFX2 ERRALFXP2"
+        print >> filexa,"$ %s %le %le %le %le %le %le %le"
 
     bme = betah[0] # measurement
     bmea = betah[9] # measurement amp
@@ -1483,29 +1483,44 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         else:
             
             delta_phase = (modelp.MUX[modelp.indx[name]] ) %1
-            beta_s = modelp.BETX[modelp.indx[name]]
-            alfa_s = modelp.ALFX[modelp.indx[name]]
+            beta_sp = modelp.BETX[modelp.indx[name]]
+            alfa_sp = modelp.ALFX[modelp.indx[name]]
 
-            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
-            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_sp, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_sp, beta_start, alfa_start)
             
             #print "Adding", name," to the summary ",namename
             
             #only for a test
-            beta_s = modelb.BETX[modelb.indx[name]]
-            alfa_s = modelb.ALFX[modelb.indx[name]]
-            bx = 196.08
-            ebx = 3.9878
-            ax = 3.4666
-            eax = 0.087699
+            beta_sb = modelb.BETX[modelb.indx[name]]
+            alfa_sb = modelb.ALFX[modelb.indx[name]]
+            #bx = 196.08
+            #ebx = 3.9878
+            #ax = 3.4666
+            #eax = 0.087699
+            
+            last_bpm = bpms[-1][1]
+            beta_end = bme.BETX[bme.indx[last_bpm]]
+            alfa_end = bme.ALFX[bme.indx[last_bpm]]
+            err_beta_end = sqrt(bme.ERRBETX[bme.indx[last_bpm]]**2+bme.STDBETX[bme.indx[last_bpm]]**2)
+            err_alfa_end  = sqrt(bme.ERRALFX[bme.indx[last_bpm]]**2+bme.STDALFX[bme.indx[last_bpm]]**2)
+            
             delta_phase = ( modelb.MUX[modelb.indx[name]] ) %1
-            back_err = propagate_error_beta(ebx, eax, delta_phase, beta_s, bx, ax)
+            err_beta_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
+            err_alfa_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
 
-            print >> filexa, name, s, aep, eaep, amo, smo, err_alfa_prop
-            print >> filex, name, s, bep, ebep, betam, smo, err_beta_prop, back_err
+            
+            beta_f = (1/err_beta_prop**2 *beta_sp + 1/err_beta_back**2 *beta_sb) / (1/err_beta_prop**2 + 1/err_beta_back**2)
+            err_beta_f = sqrt(1 / (1/err_beta_prop**2 + 1/err_beta_back**2))
+            
+            alfa_f = (1/err_alfa_prop**2 *alfa_sp + 1/err_alfa_back**2 *alfa_sb) / (1/err_alfa_prop**2 + 1/err_alfa_back**2)
+            err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
+
+            print >> filexa, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
+            print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
 
             if namename in name:
-                fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(err_beta_prop, 4))
+                fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(beta_f, 4))+" "+str(round(err_beta_f, 4))
 
     filex.close()
     filexa.close()
@@ -1515,15 +1530,15 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
     fileya = open(path+"sbsalfay_"+namename+".out","w")
 
     if switch == 0:
-        print >> filey,"* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S ERRBETY2"
-        print >> filey,"$ %s %le %le %le %le %le %le %le %le %le  %le"
-        print >> fileya,"* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S ERRALFY2"
-        print >> fileya,"$ %s %le %le %le %le %le %le %le %le"
+        print >> filey,"* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S BETY2 ERRBETY2"
+        print >> filey,"$ %s %le %le %le %le %le %le %le %le %le  %le %le"
+        print >> fileya,"* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S ALFY2 ERRALFY2"
+        print >> fileya,"$ %s %le %le %le %le %le %le %le %le %le"
     else:
-        print >> filey,"* NAME S BETY ERRBETY BETYMDL MDL_S ERRBETY2"
-        print >> filey,"$ %s %le %le %le %le %le %le"
-        print >> fileya,"* NAME S ALFA ERRALFY ALFYMDL MDL_S ERRALFY2"
-        print >> fileya,"$ %s %le %le %le %le %le %le"
+        print >> filey,"* NAME S BETY ERRBETY BETYMDL MDL_S BETY2 ERRBETY2"
+        print >> filey,"$ %s %le %le %le %le %le %le %le"
+        print >> fileya,"* NAME S ALFA ERRALFY ALFYMDL MDL_S ALFY2 ERRALFY2"
+        print >> fileya,"$ %s %le %le %le %le %le %le %le"
 
 
     bme = betav[0] # measurement
@@ -1598,12 +1613,12 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
             print >> fileya, name, s, alfame, ealfame, aep, eaep, amo, smo, err_alfa_prop
         else:
-            delta_phase = (model.MUY[model.indx[name]] - model.MUY[model.indx[first_bpm]]) %1
-            beta_s = modelp.BETY[modelp.indx[name]]
-            alfa_s = modelp.ALFY[modelp.indx[name]]
+            delta_phase = (modelp.MUY[modelp.indx[name]] ) %1
+            beta_sp = modelp.BETY[modelp.indx[name]]
+            alfa_sp = modelp.ALFY[modelp.indx[name]]
 
-            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
-            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
+            err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_sp, beta_start, alfa_start)
+            err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_sp, beta_start, alfa_start)
             
             betap = modelp.BETY[modelp.indx[name]]
             betab = modelb.BETY[modelb.indx[name]]
@@ -1611,11 +1626,36 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             alfap = modelp.ALFY[modelp.indx[name]]
             alfab = modelb.ALFY[modelb.indx[name]]
             aep = (1/(alfape+alfabe))*(alfape*alfap+alfabe*alfab)
-            print >> fileya, name, s, aep, eaep, amo, smo, err_alfa_prop
-            print >> filey, name, s, bep, ebep, betam, smo, err_beta_prop
+            
+            
+            delta_phase = (modelb.MUY[modelb.indx[name]] ) %1
+            beta_sb = modelb.BETY[modelb.indx[name]]
+            alfa_sb = modelb.ALFY[modelb.indx[name]]
+            
+            last_bpm = bpms[-1][1]
+            beta_end = bme.BETY[bme.indx[last_bpm]]
+            alfa_end = bme.ALFY[bme.indx[last_bpm]]
+            err_beta_end = sqrt(bme.ERRBETY[bme.indx[last_bpm]]**2+bme.STDBETY[bme.indx[last_bpm]]**2)
+            err_alfa_end = sqrt(bme.ERRALFY[bme.indx[last_bpm]]**2+bme.STDALFY[bme.indx[last_bpm]]**2)
+            
+            err_beta_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
+            err_alfa_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
+
+            
+            beta_f = (1/err_beta_prop**2 *beta_sp + 1/err_beta_back**2 *beta_sb) / (1/err_beta_prop**2 + 1/err_beta_back**2)
+            err_beta_f = sqrt(1 / (1/err_beta_prop**2 + 1/err_beta_back**2))
+            
+            alfa_f = (1/err_alfa_prop**2 *alfa_sp + 1/err_alfa_back**2 *alfa_sb) / (1/err_alfa_prop**2 + 1/err_alfa_back**2)
+            err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))            
+            
+            
+            
+            
+            print >> fileya, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
+            print >> filey, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
 
             if namename in name:
-                print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2), round(err_beta_prop, 4)
+                print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2), round(beta_f, 4), round(err_beta_f, 4)
 
 
     filey.close()
