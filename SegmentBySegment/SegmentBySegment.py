@@ -1517,7 +1517,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
 
             print >> filexa, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
-            print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
+            print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f, err_beta_prop, err_beta_back
 
             if namename in name:
                 fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(beta_f, 4))+" "+str(round(err_beta_f, 4))
