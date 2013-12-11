@@ -1493,7 +1493,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             
             #only for a test
             beta_sb = modelb.BETX[modelb.indx[name]]
-            alfa_sb = modelb.ALFX[modelb.indx[name]]
+            alfa_sb = -modelb.ALFX[modelb.indx[name]]
             
             last_bpm = bpms[-1][1]
             beta_end = bme.BETX[bme.indx[last_bpm]]
