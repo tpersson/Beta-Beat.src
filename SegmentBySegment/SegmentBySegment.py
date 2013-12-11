@@ -1502,12 +1502,6 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             err_alfa_end  = sqrt(bme.ERRALFX[bme.indx[last_bpm]]**2+bme.STDALFX[bme.indx[last_bpm]]**2)
             
             delta_phase = ( modelb.MUX[modelb.indx[name]] ) %1
-            print beta_end
-            print alfa_end
-            print beta_sb
-            print delta_phase
-            print err_beta_end
-            print err_alfa_end
             err_beta_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
             err_alfa_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
 
@@ -1519,7 +1513,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
 
             print >> filexa, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
-            print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f, err_beta_prop, err_beta_back
+            print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
 
             if namename in name:
                 fileb1 = name+" "+str(s)+" "+str(round(bep, 2))+" "+str(round(ebep, 2))+" "+str(round(betam, 2))+" "+str(round(aep, 4))+" "+str(round(eaep, 4))+" "+str(round(amo, 4))+" "+str(round(beta_f, 4))+" "+str(round(err_beta_f, 4))
@@ -1636,7 +1630,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             
             last_bpm = bpms[-1][1]
             beta_end = bme.BETY[bme.indx[last_bpm]]
-            alfa_end = bme.ALFY[bme.indx[last_bpm]]
+            alfa_end = -bme.ALFY[bme.indx[last_bpm]]
             err_beta_end = sqrt(bme.ERRBETY[bme.indx[last_bpm]]**2+bme.STDBETY[bme.indx[last_bpm]]**2)
             err_alfa_end = sqrt(bme.ERRALFY[bme.indx[last_bpm]]**2+bme.STDALFY[bme.indx[last_bpm]]**2)
             
