@@ -207,6 +207,22 @@ def get_free_phase_eq(MADTwiss,Files,Qd,Q,psid_ac2bpmac,plane,bd,op):
         psi16std = phase.calc_phase_std(psi16all[k],1)
         psi17ave = phase.calc_phase_mean(psi17all[k],1)
         psi17std = phase.calc_phase_std(psi17all[k],1)
+        
+        if plane=='H':
+            psi12std = 0.00147
+            psi13std = 0.00147
+            psi14std = 0.00147
+            psi15std = 0.00147
+            psi16std = 0.00147
+            psi17std = 0.00147
+        elif plane=='V':
+            psi12std = 0.0009
+            psi13std = 0.0009
+            psi14std = 0.0009
+            psi15std = 0.0009
+            psi16std = 0.0009
+            psi17std = 0.0009
+        
         muave=muave+psi12ave
         try:    result[bpm[k][1]]=[psi12ave,psi12std,psi13ave,psi13std,psi12mdl[k],psi13mdl[k],bpm[k+1][1]]
         except: result[bpm[k][1]]=[psi12ave,psi12std,psi13ave,psi13std,psi12mdl[k],psi13mdl[k],bpm[0][1]]    #-- The last BPM
