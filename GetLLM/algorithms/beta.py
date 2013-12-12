@@ -747,24 +747,8 @@ def BetaFromPhase_BPM_left(bn1,bn2,bn3,MADTwiss,phase,plane):
     alfstd=        (M12/M11*2*np.pi*phase["".join([plane,bn1,bn2])][1]/sin(ph2pi12)**2)**2
     alfstd=alfstd+(N12/N11*2*np.pi*phase["".join([plane,bn1,bn3])][1]/sin(ph2pi13)**2)**2
     alfstd=math.sqrt(alfstd)/denom
-    
-    betstdH=        (2*np.pi*0.00147/sin(phmdl12)**2)**2
-    betstdH=betstdH+(2*np.pi*0.00147/sin(phmdl13)**2)**2
-    betstdH=math.sqrt(betstdH)/abs(denom)    
-    betstdV=        (2*np.pi*0.0009/sin(phmdl12)**2)**2
-    betstdV=betstdV+(2*np.pi*0.0009/sin(phmdl13)**2)**2
-    betstdV=math.sqrt(betstdV)/abs(denom)    
-    alfstdH=        (M12/M11*2*np.pi*0.00147/sin(ph2pi12)**2)**2
-    alfstdH=alfstdH+(N12/N11*2*np.pi*0.00147/sin(ph2pi13)**2)**2
-    alfstdH=math.sqrt(alfstdH)/denom
-    alfstdV=        (M12/M11*2*np.pi*0.0009/sin(ph2pi12)**2)**2
-    alfstdV=alfstdV+(N12/N11*2*np.pi*0.0009/sin(ph2pi13)**2)**2
-    alfstdV=math.sqrt(alfstdV)/denom
-    if plane == 'H':
-        return bet, betstdH, alf, alfstdH, mdlerr
-    elif plane == 'V':
-        return bet, betstdV, alf, alfstdV, mdlerr
-    else: return bet, betstd, alf, alfstd, mdlerr
+
+    return bet, betstd, alf, alfstd, mdlerr
 
 def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane):
     '''
@@ -841,25 +825,8 @@ def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane):
     alfstd=alfstd+(N12/N11*2*np.pi*phase["".join([plane,bn2,bn3])][1]/sin(ph2pi23)**2)**2
     alfstd=math.sqrt(alfstd)/abs(denom)
 
-    betstdH=        (2*np.pi*0.00147/sin(ph2pi12)**2)**2
-    betstdH=betstdH+(2*np.pi*0.00147/sin(ph2pi23)**2)**2
-    betstdH=math.sqrt(betstdH)/abs(denom)
-    betstdV=        (2*np.pi*0.0009/sin(ph2pi12)**2)**2
-    betstdV=betstdV+(2*np.pi*0.0009/sin(ph2pi23)**2)**2
-    betstdV=math.sqrt(betstdV)/abs(denom)
-    alfstdH=        (M12/M22*2*np.pi*0.00147/sin(ph2pi12)**2)**2
-    alfstdH=alfstdH+(N12/N11*2*np.pi*0.00147/sin(ph2pi23)**2)**2
-    alfstdH=math.sqrt(alfstdH)/abs(denom)
-    alfstdV=        (M12/M22*2*np.pi*0.0009/sin(ph2pi12)**2)**2
-    alfstdV=alfstdV+(N12/N11*2*np.pi*0.0009/sin(ph2pi23)**2)**2
-    alfstdV=math.sqrt(alfstdV)/abs(denom)
-    
-    if plane == 'H':
-        return bet, betstdH, alf, alfstdH, mdlerr
-    elif plane == 'V':
-        return bet, betstdV, alf, alfstdV, mdlerr
-    else: return bet, betstd, alf, alfstd, mdlerr
-    
+    return bet, betstd, alf, alfstd, mdlerr
+
 def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane):
     '''
     Calculates the beta/alfa function and their errors using the
@@ -934,27 +901,10 @@ def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane):
     alfstd=        (M12/M22*2*np.pi*phase["".join([plane,bn2,bn3])][1]/sin(ph2pi23)**2)**2
     alfstd=alfstd+(N12/N22*2*np.pi*phase["".join([plane,bn1,bn3])][1]/sin(ph2pi13)**2)**2
     alfstd=math.sqrt(alfstd)/abs(denom)
-    
-    betstdH=        (2*np.pi*0.00147/sin(ph2pi23)**2)**2
-    betstdH=betstdH+(2*np.pi*0.00147/sin(ph2pi13)**2)**2
-    betstdH=math.sqrt(betstdH)/abs(denom)
-    betstdV=        (2*np.pi*0.0009/sin(ph2pi23)**2)**2
-    betstdV=betstdV+(2*np.pi*0.0009/sin(ph2pi13)**2)**2
-    betstdV=math.sqrt(betstdV)/abs(denom)
-
-    alfstdH=        (M12/M22*2*np.pi*0.00147/sin(ph2pi23)**2)**2
-    alfstdH=alfstdH+(N12/N22*2*np.pi*0.00147/sin(ph2pi13)**2)**2
-    alfstdH=math.sqrt(alfstdH)/abs(denom)
-    alfstdV=        (M12/M22*2*np.pi*0.0009/sin(ph2pi23)**2)**2
-    alfstdV=alfstdV+(N12/N22*2*np.pi*0.0009/sin(ph2pi13)**2)**2
-    alfstdV=math.sqrt(alfstdV)/abs(denom)
 
 
-    if plane == 'H':
-        return bet, betstdH, alf, alfstdH, mdlerr
-    elif plane == 'V':
-        return bet, betstdV, alf, alfstdV, mdlerr
-    else: return bet, betstd, alf, alfstd, mdlerr
+    return bet, betstd, alf, alfstd, mdlerr
+
 
 
 def _get_free_amp_beta(betai, rmsbb, bpms, inv_j, mad_ac, mad_twiss, plane):

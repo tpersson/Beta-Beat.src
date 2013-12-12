@@ -718,6 +718,23 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
         phstd15 = calc_phase_std(phi15, 1.0)
         phstd16 = calc_phase_std(phi16, 1.0)
         phstd17 = calc_phase_std(phi17, 1.0)
+        
+        if plane=='H':
+            p_std_12 = 0.00147
+            p_std_13 = 0.00147
+            phstd14 = 0.00147
+            phstd15 = 0.00147
+            phstd16 = 0.00147
+            phstd17 = 0.00147
+        elif plane=='V':
+            p_std_12 = 0.0009
+            p_std_13 = 0.0009
+            phstd14 = 0.0009
+            phstd15 = 0.0009
+            phstd16 = 0.0009
+            phstd17 = 0.0009
+        
+        
         p_i_12 = calc_phase_mean(p_i_12, 1.0)
         p_i_13 = calc_phase_mean(p_i_13, 1.0)
         phi14 = calc_phase_mean(phi14, 1.0)
