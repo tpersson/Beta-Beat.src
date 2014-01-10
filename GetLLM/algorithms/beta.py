@@ -24,6 +24,7 @@ import Utilities.bpm
 import compensate_ac_effect
 from operator import itemgetter
 
+
 DEBUG = sys.flags.debug # True with python option -d! ("python -d GetLLM.py...") (vimaier)
 
 #===================================================================================================
@@ -508,6 +509,10 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     '''
     alfa = {}
     beta = {}
+    
+    if phase == {}:
+        return [{}, 0.0, {}, []]
+
 
     commonbpms = Utilities.bpm.intersect(ListOfFiles)
     commonbpms = Utilities.bpm.model_intersect(commonbpms, MADTwiss)
