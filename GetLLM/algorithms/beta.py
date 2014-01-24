@@ -431,9 +431,9 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
         bn4 = str.upper(commonbpms[(i + 3) % len(commonbpms)][1])
         bn5 = str.upper(commonbpms[(i + 4) % len(commonbpms)][1])
         candidates = []
-        tbet, tbetstd, talf, talfstd, mdlerr= BetaFromPhase_BPM_right(bn1, bn2, bn3, MADTwiss, phase, plane)
+        tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_right(bn1, bn2, bn3, MADTwiss, phase, plane)
         candidates.append([tbetstd, tbet, talfstd, talf])
-        tbet, tbetstd, talf, talfstd, mdlerr= BetaFromPhase_BPM_mid(bn2, bn3, bn4, MADTwiss, phase, plane)
+        tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn2, bn3, bn4, MADTwiss, phase, plane)
         candidates.append([tbetstd, tbet, talfstd, talf])
         tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_left(bn3, bn4, bn5, MADTwiss, phase, plane)
         candidates.append([tbetstd, tbet, talfstd, talf])
@@ -481,6 +481,7 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
     if sort_cand[0][4] > 0 and use_only_three_bpms_for_beta_from_phase == 0:
         return sort_cand[0], sort_cand[1], sort_cand[2], bn4
     else:
+        print "3BPMs"
         return candidates[2], candidates[5], candidates[12], bn4
 
 def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for_beta_from_phase):

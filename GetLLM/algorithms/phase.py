@@ -672,17 +672,17 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
             if tune_q is not None:
                 try:
                     if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn2]] >s_lastbpm: p_m_12+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn3]] >s_lastbpm: p_m_13+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn4]] >s_lastbpm: phm14+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn5]] >s_lastbpm: phm15+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn6]] >s_lastbpm: phm16+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn7]] >s_lastbpm: phm17+= getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn2]]<=s_lastbpm: p_m_12+=-getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn3]]<=s_lastbpm: p_m_13+=-getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn4]]<=s_lastbpm: phm14+=-getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn5]]<=s_lastbpm: phm15+=-getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn6]]<=s_lastbpm: phm16+=-getllm_d.beam_direction*tune_q
-                    if mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn7]]<=s_lastbpm: phm17+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn3]] >s_lastbpm: p_m_13+= getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn4]] >s_lastbpm: phm14+= getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn5]] >s_lastbpm: phm15+= getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn6]] >s_lastbpm: phm16+= getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]]<=s_lastbpm and mad_twiss.S[mad_twiss.indx[bn7]] >s_lastbpm: phm17+= getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn2]]<=s_lastbpm: p_m_12+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn3]]<=s_lastbpm: p_m_13+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn4]]<=s_lastbpm: phm14+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn5]]<=s_lastbpm: phm15+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn6]]<=s_lastbpm: phm16+=-getllm_d.beam_direction*tune_q
+                    elif mad_twiss.S[mad_twiss.indx[bn1]] >s_lastbpm and mad_twiss.S[mad_twiss.indx[bn7]]<=s_lastbpm: phm17+=-getllm_d.beam_direction*tune_q
                 except:
                     pass
             if p_m_12<0: p_m_12+=1
@@ -718,21 +718,6 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
         phstd15 = calc_phase_std(phi15, 1.0)
         phstd16 = calc_phase_std(phi16, 1.0)
         phstd17 = calc_phase_std(phi17, 1.0)
-        
-        if plane=='H':
-            p_std_12 = 0.00147
-            p_std_13 = 0.00147
-            phstd14 = 0.00147
-            phstd15 = 0.00147
-            phstd16 = 0.00147
-            phstd17 = 0.00147
-        elif plane=='V':
-            p_std_12 = 0.0009
-            p_std_13 = 0.0009
-            phstd14 = 0.0009
-            phstd15 = 0.0009
-            phstd16 = 0.0009
-            phstd17 = 0.0009
         
         
         p_i_12 = calc_phase_mean(p_i_12, 1.0)
