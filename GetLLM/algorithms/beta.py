@@ -23,6 +23,7 @@ from numpy import sin, cos, tan
 import Utilities.bpm
 import compensate_ac_effect
 from operator import itemgetter
+import Utilities.tfs_file_writer as tfs_writer
 
 
 DEBUG = sys.flags.debug # True with python option -d! ("python -d GetLLM.py...") (vimaier)
@@ -66,10 +67,15 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
     '''
     beta_d = BetaData()
 
+    used_bpms = tfs_writer.TfsFileWriter.open("used_BPMs.out")
+    used_bpms.set_outputpath(getllm_d.outputpath)
+    used_bpms.add_column_names("PROBED PAIR1A PAIR1B PAIR2A PAIR2B PAIR3A PAIR3B".split())
+    used_bpms.add_column_datatypes("%s %s %s %s %s %s %s".split())
+
     print 'Calculating beta'
     #---- H plane
     if twiss_d.has_zero_dpp_x():
-        [beta_d.x_phase, rmsbbx, alfax, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_x, phase_d.ph_x, 'H', use_only_three_bpms_for_beta_from_phase)
+        [beta_d.x_phase, rmsbbx, alfax, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_x, phase_d.ph_x, 'H', use_only_three_bpms_for_beta_from_phase, used_bpms)
         beta_d.x_phase['DPP'] = 0
         tfs_file = files_dict['getbetax.out']
         tfs_file.add_float_descriptor("Q1", tune_d.q1)
@@ -87,7 +93,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
         if getllm_d.with_ac_calc:
             #-- from eq
             try:
-                [beta_d.x_phase_f, rmsbbxf, alfaxf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_x, phase_d.x_f, 'H', use_only_three_bpms_for_beta_from_phase)
+                [beta_d.x_phase_f, rmsbbxf, alfaxf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_x, phase_d.x_f, 'H', use_only_three_bpms_for_beta_from_phase, used_bpms)
                 tfs_file = files_dict['getbetax_free.out']
                 tfs_file.add_float_descriptor("Q1", tune_d.q1f)
                 tfs_file.add_float_descriptor("Q2", tune_d.q2f)
@@ -118,7 +124,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
 
     #---- V plane
     if twiss_d.has_zero_dpp_y():
-        [beta_d.y_phase, rmsbby, alfay, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_y, phase_d.ph_y, 'V', use_only_three_bpms_for_beta_from_phase)
+        [beta_d.y_phase, rmsbby, alfay, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_y, phase_d.ph_y, 'V', use_only_three_bpms_for_beta_from_phase, used_bpms)
         beta_d.y_phase['DPP'] = 0
         tfs_file = files_dict['getbetay.out']
         tfs_file.add_float_descriptor("Q1", tune_d.q1)
@@ -136,7 +142,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
         if getllm_d.with_ac_calc:
             #-- from eq
             try:
-                [beta_d.y_phase_f, rmsbbyf, alfayf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_y, phase_d.y_f, 'V', use_only_three_bpms_for_beta_from_phase)
+                [beta_d.y_phase_f, rmsbbyf, alfayf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_y, phase_d.y_f, 'V', use_only_three_bpms_for_beta_from_phase, used_bpms)
                 tfs_file = files_dict['getbetay_free.out']
                 tfs_file.add_float_descriptor("Q1", tune_d.q1f)
                 tfs_file.add_float_descriptor("Q2", tune_d.q2f)
@@ -403,7 +409,7 @@ def calculate_beta_from_amplitude(getllm_d, twiss_d, tune_d, phase_d, beta_d, ma
 #===================================================================================================
 
 
-def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase):
+def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase, used_bpms):
     '''
     Chooses three BPM sets for the beta calculation from combinations of 7 BPMs.
     If less than 7 BPMs are available it will fall back to using only next neighbours.
@@ -448,43 +454,45 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
     bn7 = str.upper(commonbpms[(i + 6) % len(commonbpms)][1])
     candidates = []
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_right(bn1, bn2, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn2])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_right(bn1, bn3, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn3])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_right(bn2, bn3, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn3])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn1, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn5])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn2, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn5])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn3, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn5])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn1, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn6])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn2, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn6])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn3, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn6])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn1, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn7])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn2, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn7])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_mid(bn3, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn7])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_left(bn4, bn5, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn6])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_left(bn4, bn5, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn7])
     tbet, tbetstd, talf, talfstd, mdlerr = BetaFromPhase_BPM_left(bn4, bn6, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr])
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn6, bn7])
     sort_cand = sorted(candidates, key=itemgetter(4))
     if sort_cand[0][4] > 0 and use_only_three_bpms_for_beta_from_phase == 0:
+        used_bpms.add_table_row([bn4, sort_cand[0][5], sort_cand[0][6], sort_cand[1][5], sort_cand[1][6], sort_cand[2][5], sort_cand[2][6]])
         return sort_cand[0], sort_cand[1], sort_cand[2], bn4
     else:
-        print "3BPMs"
+        #used_bpms.add_table_row([bn4, sort_cand[2][5], sort_cand[2][6], sort_cand[5][5], sort_cand[5][6], sort_cand[12][5], sort_cand[12][6]])
         return candidates[2], candidates[5], candidates[12], bn4
 
-def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for_beta_from_phase):
+
+def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for_beta_from_phase, used_bpms):
     '''
     Uses 3 BPM left and right of a probed BPM and calculates the beta/alfa from the
     phase advances (15 combinations of 3 BPM stes -> 15 betas).
@@ -510,10 +518,9 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     '''
     alfa = {}
     beta = {}
-    
+
     if phase == {}:
         return [{}, 0.0, {}, []]
-
 
     commonbpms = Utilities.bpm.intersect(ListOfFiles)
     commonbpms = Utilities.bpm.model_intersect(commonbpms, MADTwiss)
@@ -526,16 +533,16 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         print "beta_from_phase: Less than seven BPMs for plane", plane+". Can not use optimised algorithm."
 
     delbeta = []
+
     for i in range(0, len(commonbpms)):
 
-        alfa_beta_b1, alfa_beta_b2, alfa_beta_b3, probed_bpm_name = get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase)
+        alfa_beta_b1, alfa_beta_b2, alfa_beta_b3, probed_bpm_name = get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase, used_bpms)
 
         beti = (alfa_beta_b1[1] + alfa_beta_b2[1] + alfa_beta_b3[1])/3.
         alfi = (alfa_beta_b1[3] + alfa_beta_b2[3] + alfa_beta_b3[3])/3.
 
         betstd = math.sqrt(alfa_beta_b1[0]**2 + alfa_beta_b2[0]**2 + alfa_beta_b3[0]**2)/math.sqrt(3.)
         alfstd = math.sqrt(alfa_beta_b1[2]**2 + alfa_beta_b2[2]**2 + alfa_beta_b3[2]**2)/math.sqrt(3.)
-
 
         try:
             beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/3.-beti**2.)
@@ -547,7 +554,6 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         except ValueError:
             alferr = 0
 
-
         beta[probed_bpm_name] = (beti, beterr, betstd)
         alfa[probed_bpm_name] = (alfi, alferr, alfstd)
         if plane == 'H':
@@ -556,7 +562,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
             betmdl1 = MADTwiss.BETY[MADTwiss.indx[probed_bpm_name]]
         delbeta.append((beti-betmdl1)/betmdl1)
 
-
+    used_bpms.write_to_file()
     delbeta = np.array(delbeta)
     rmsbb = math.sqrt(np.average(delbeta*delbeta))
 

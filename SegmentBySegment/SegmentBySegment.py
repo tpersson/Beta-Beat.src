@@ -68,10 +68,10 @@ import math
 
 import numpy as np
 
-import __init__ # @UnusedImport used for appending paths
+import __init__  # @UnusedImport used for appending paths
 import Utilities.iotools
 from metaclass import twiss
-
+import Utilities.tfs_file_writer as tfs_writer
 
 
 #===================================================================================================
@@ -496,7 +496,7 @@ def main(options):
 
             # calling function to collect and write data
             print "Writing data for function ",namename
-            getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,twisstwiss,modelcor,normal_pro,back_pro,savepath,elementswitch,accel)
+            getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,twisstwiss,modelcor,normal_pro,back_pro,savepath,elementswitch,accel,method,savepath)
 
 
             # gnuplot
@@ -530,6 +530,21 @@ def modelIntersect(expbpms, model):
         sys.exit()
     return bpmsin
 
+def modelIntersectgetf(exp, model):
+    bpmsin=[]
+    for bpm in exp.NAME:
+            try:
+                    check=model.indx[bpm.upper()]
+                    bpmsin.append([model.S[check], bpm])
+            except:
+                    print bpm, "Not in Model"
+    if len(bpmsin)==0:
+            print "Zero intersection of Exp and Model"
+            print "Please, provide a good Dictionary"
+            print "Now we better leave!"
+            sys.exit()
+    bpmsin.sort()
+    return bpmsin
 
 def intersect(ListOfFile):
     '''Pure intersection of all bpm names in all files '''
@@ -1277,17 +1292,20 @@ def getIPfrompara(bpmleft,bpmright,betax,betay,phasex,phasey):
 def propagate_error_beta(errb0, erra0, dphi, bets, bet0, alf0):
     return math.sqrt((bets*np.sin(4*np.pi*dphi)*alf0/bet0 + bets*np.cos(4*np.pi*dphi)/bet0)**2*errb0**2 + (bets*np.sin(4*np.pi*dphi))**2*erra0**2)
 
+
 def propagate_error_alfa(errb0, erra0, dphi, alfs, bet0, alf0):
     return math.sqrt(((alfs*((np.sin(4*np.pi*dphi)*alf0/bet0) + (np.cos(4*np.pi*dphi)/bet0))) - (np.cos(4*np.pi*dphi)*alf0/bet0) + (np.sin(4*np.pi*dphi)/bet0))**2*errb0**2 + ((np.cos(4*np.pi*dphi)) - (alfs*np.sin(4*np.pi*dphi)))**2*erra0**2)
+
 
 def propagate_error_phase(errb0, erra0, dphi, bet0, alf0):
     return math.sqrt((((1/2.*np.cos(4*np.pi*dphi)*alf0/bet0)-(1/2.*np.sin(4*np.pi*dphi)/bet0)-(1/2.*alf0/bet0))*errb0)**2+((-(1/2.*np.cos(4*np.pi*dphi))+(1/2.))*erra0)**2)/(2*np.pi)
 
-def propagate_error_dispersion(errD0,errb0, erra0, dphi, bet0, alf0):
-    return math.sqrt((((1/2.*np.cos(4*np.pi*dphi)*alf0/bet0)-(1/2.*np.sin(4*np.pi*dphi)/bet0)-(1/2.*alf0/bet0))*errb0)**2+((-(1/2.*np.cos(4*np.pi*dphi))+(1/2.))*erra0)**2)/(2*np.pi)
+
+def propagate_error_dispersion(std_D0, bet0, bets, dphi, alf0):
+    return np.abs(std_D0 * math.sqrt(bets/bet0) * (np.cos(2*np.pi*dphi)+alf0*np.sin(2*np.pi*dphi)))
 
 
-def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,model,modelcor,modelp,modelb,path,switch,accel):
+def getAndWriteData(namename, phases, betah, betav, disph, dispv, couple, chromatic, model, modelcor, modelp, modelb, path, switch, accel, method, savepath):
     '''
     Function that returns the optics function at the given element
 
@@ -1346,74 +1364,71 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
     print "INFO: Start writing files", switch
 
-
     #### gathering file
     if switch == 1:
         if os.path.isfile(path+"sbs_summary_bet.out"):
             print "INFO: Updating summary file"
-            filesum_b = open(path+"sbs_summary_bet.out","a")
-            filesum_c = open(path+"sbs_summary_cou.out","a")
-            filesum_d = open(path+"sbs_summary_disp.out","a")
+            filesum_b = open(path+"sbs_summary_bet.out", "a")
+            filesum_c = open(path+"sbs_summary_cou.out", "a")
+            filesum_d = open(path+"sbs_summary_disp.out", "a")
 
         else:
             print "INFO: Creating summary file"
-            filesum_b = open(path+"sbs_summary_bet.out","w")
-            filesum_c = open(path+"sbs_summary_cou.out","w")
-            filesum_d = open(path+"sbs_summary_disp.out","w")
-
+            filesum_b = open(path+"sbs_summary_bet.out", "w")
+            filesum_c = open(path+"sbs_summary_cou.out", "w")
+            filesum_d = open(path+"sbs_summary_disp.out", "w")
 
             # beta
             print >> filesum_b, "* NAME S BETXP ERRBETXP BETXMDL ALFXP ERRALFXP ALFXMDL BETX2 ERRBETXP2 BETY ERRBETY BETYMDL ALFA ERRALFY ALFYMDL MDL_S BETY2 ERRBETYP2"
             print >> filesum_b, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             #coupling
-            print >> filesum_c,"* NAME   S   f1001 f1001re  f1001im    f1010   f1010re   f1010im  f1001_PLAY ef1001_play   f1001re_PLAY  f1001im_PLAY    f1010_PLAY ef1010_play   f1010re_PLAY   f1010im_PLAY C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor S_MODEL"
-            print >> filesum_c,"$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
+            print >> filesum_c, "* NAME   S   f1001 f1001re  f1001im    f1010   f1010re   f1010im  f1001_PLAY ef1001_play   f1001re_PLAY  f1001im_PLAY    f1010_PLAY ef1010_play   f1010re_PLAY   f1010im_PLAY C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor S_MODEL"
+            print >> filesum_c, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             # disp and chromatic
             if len(chromatic)!=0:
 
-                print >> filesum_d, "* NAME S DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY WX_MDL WX_PLAY eWX_play PHIX_MDL PHIX_PLAY ePHIX_PLAY WY_MDL WY_PLAY eWY_play PHIY_MDL PHIY_PLAY ePHIY_PLAY S_MODEL"
+                print >> filesum_d, "* NAME S DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY DX2 ERRDX DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY DY2 ERRDY WX_MDL WX_PLAY eWX_play PHIX_MDL PHIX_PLAY ePHIX_PLAY WY_MDL WY_PLAY eWY_play PHIY_MDL PHIY_PLAY ePHIY_PLAY S_MODEL"
                 print >> filesum_d, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
             else:
-                print >> filesum_d, "* NAME S DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY  DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY  S_MODEL"
-                print >> filesum_d, "$ %s %le %le %le %le %le %le %le %le %le  %le %le %le %le %le"
+                print >> filesum_d, "* NAME S DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY DX2 ERRDX DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY  S_MODEL DY2 ERRDY"
+                print >> filesum_d, "$ %s %le %le %le %le %le %le %le %le %le  %le %le %le %le %le %le %le %le %le"
 
     phasex = phases[0]
     phasey = phases[1]
 
     ##beta
     #-horizontal
-    filex = open(path+"sbsbetax_"+namename+".out","w")
-    filexa = open(path+"sbsalfax_"+namename+".out","w")
+    filex = open(path+"sbsbetax_"+namename+".out", "w")
+    filexa = open(path+"sbsalfax_"+namename+".out", "w")
 
     if switch == 0:
-        print >> filex,"* NAME S BETX ERRBETX BETXAMP ERRBETXAMP BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
-        print >> filex,"$ %s %le %le %le %le %le  %le %le %le %le %le %le"
+        print >> filex, "* NAME S BETX ERRBETX BETXAMP ERRBETXAMP BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
+        print >> filex, "$ %s %le %le %le %le %le  %le %le %le %le %le %le"
 
-        print >> filexa,"* NAME S ALFX ERRALFX ALFXP ERRALFXP ALFMDL MODEL_S ALFX2 ERRALFXP2"
-        print >> filexa,"$ %s %le %le %le %le %le %le %le %le %le"
+        print >> filexa, "* NAME S ALFX ERRALFX ALFXP ERRALFXP ALFMDL MODEL_S ALFX2 ERRALFXP2"
+        print >> filexa, "$ %s %le %le %le %le %le %le %le %le %le"
     else:
-        print >> filex,"* NAME S BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
-        print >> filex,"$ %s %le %le %le %le %le %le %le"
+        print >> filex, "* NAME S BETXP ERRBETXP BETXMDL MODEL_S BETX2 ERRBETXP2"
+        print >> filex, "$ %s %le %le %le %le %le %le %le"
 
-        print >> filexa,"* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S ALFX2 ERRALFXP2"
-        print >> filexa,"$ %s %le %le %le %le %le %le %le"
+        print >> filexa, "* NAME S ALFXP ERRALFXP ALFXMDL MODEL_S ALFX2 ERRALFXP2"
+        print >> filexa, "$ %s %le %le %le %le %le %le %le"
 
-    bme = betah[0] # measurement
-    bmea = betah[9] # measurement amp
-    bmip = betah[1] # min p
-    bmap = betah[2] # max p
-    bmib = betah[3] # min b
-    bmab = betah[4] # max b
-    amip = betah[5] # min p
-    amap = betah[6] # max p
-    amib = betah[7] # min b
-    amab = betah[8] # max b
+    bme = betah[0]  # measurement
+    bmea = betah[9]  # measurement amp
+    bmip = betah[1]  # min p
+    bmap = betah[2]  # max p
+    bmib = betah[3]  # min b
+    bmab = betah[4]  # max b
+    amip = betah[5]  # min p
+    amap = betah[6]  # max p
+    amib = betah[7]  # min b
+    amab = betah[8]  # max b
 
-
-    if switch == 0: # only enter when it is a segment
+    if switch == 0:  # only enter when it is a segment
         bpms = intersect([bme, bmip, model, modelcor, modelp, modelb, bmea])
     else:
         bpms = intersect([bmip, model, modelcor, modelp, modelb])
@@ -1466,7 +1481,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
             err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_s, beta_start, alfa_start)
             err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_s, beta_start, alfa_start)
-        
+
             alfame = bme.ALFX[bme.indx[name]]
             ealfame = sqrt((bme.ERRALFX[bme.indx[name]]**2+bme.STDALFX[bme.indx[name]]**2)/2)
             #beta me
@@ -1477,40 +1492,44 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
             bep = modelcor.BETX[modelcor.indx[name]]
             alfap = modelp.ALFX[modelp.indx[name]]
 
-
             print >> filexa, name, s, alfame, ealfame, aep, eaep, amo, smo, err_alfa_prop
             print >> filex, name, s, betame, ebetame, betaa, ebetaa, bep, ebep, betam, smo, err_beta_prop
         else:
-            
-            delta_phase = (modelp.MUX[modelp.indx[name]] ) %1
+
+            delta_phase = (modelp.MUX[modelp.indx[name]]) %1
             beta_sp = modelp.BETX[modelp.indx[name]]
             alfa_sp = modelp.ALFX[modelp.indx[name]]
 
             err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_sp, beta_start, alfa_start)
             err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_sp, beta_start, alfa_start)
-            
+
             #print "Adding", name," to the summary ",namename
-            
+
             #only for a test
             beta_sb = modelb.BETX[modelb.indx[name]]
             alfa_sb = modelb.ALFX[modelb.indx[name]]
-            
+
             last_bpm = bpms[-1][1]
             beta_end = bme.BETX[bme.indx[last_bpm]]
             alfa_end = -bme.ALFX[bme.indx[last_bpm]]
             err_beta_end = sqrt(bme.ERRBETX[bme.indx[last_bpm]]**2+bme.STDBETX[bme.indx[last_bpm]]**2)
-            err_alfa_end  = sqrt(bme.ERRALFX[bme.indx[last_bpm]]**2+bme.STDALFX[bme.indx[last_bpm]]**2)
-            
-            delta_phase = ( modelb.MUX[modelb.indx[name]] ) %1
+            err_alfa_end = sqrt(bme.ERRALFX[bme.indx[last_bpm]]**2+bme.STDALFX[bme.indx[last_bpm]]**2)
+
+            delta_phase = (modelb.MUX[modelb.indx[name]]) %1
             err_beta_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
             err_alfa_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
 
-            
             beta_f = (1/err_beta_prop**2 *beta_sp + 1/err_beta_back**2 *beta_sb) / (1/err_beta_prop**2 + 1/err_beta_back**2)
             err_beta_f = sqrt(1 / (1/err_beta_prop**2 + 1/err_beta_back**2))
-            
+
             alfa_f = (1/err_alfa_prop**2 *alfa_sp + 1/err_alfa_back**2 *alfa_sb) / (1/err_alfa_prop**2 + 1/err_alfa_back**2)
             err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
+
+            std_wght = sqrt(2 * (1/err_beta_prop**2 * (betap - beta_f)**2 + 1/err_beta_back**2 * (betab - beta_f)**2) / (1/err_beta_prop**2 + 1/err_beta_back**2))
+            err_beta_f = sqrt(err_beta_f**2 + std_wght**2)
+
+            std_wght = sqrt(2 * (1/err_alfa_prop**2 * (alfap - alfa_f)**2 + 1/err_alfa_back**2 * (alfab - alfa_f)**2) / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
+            err_alfa_f = sqrt(err_alfa_f**2 + std_wght**2)
 
             print >> filexa, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
             print >> filex, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
@@ -1521,34 +1540,68 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
     filex.close()
     filexa.close()
 
+    Model = twiss(savepath + "/twiss_" + namename + ".dat")
+    if method == "driven":
+        method = ""
+    Model.Cmatrix()
+    ModelPlay = twiss(savepath + "/twiss_" + namename + "_cor.dat")
+    ModelPlay.Cmatrix()
+    t = Model
+    tp = ModelPlay
+    px = twiss(options.path + '/getphasetotx' + method + '.out')
+
+    bpmsx = modelIntersectgetf(t, px)
+
+    bpmx1 = bpms[0][1]
+    if bpmx1 not in zip(*bpmsx)[1]:   # zip(*a) is like transpose of a list
+        print "Selected Start BPM in not in the measurement!"
+        print "Quiting SbS"
+        sys.exit()
+
+    fx = tfs_writer.TfsFileWriter.open(savepath + '/test_sbsphasext_' + namename + '.out')
+    fx.add_column_names(["NAME", "S", "PHASEX", "PHASEXT", "ERRORX", "PHSTDX", "PHASE_PLAY", "MODEL_S"])
+    fx.add_column_datatypes(["%s", "%le", "%le", "%le", "%le", "%le", "%le", "%le"])
+#TODO:
+    for el in bpmsx:
+        tindx = t.indx[el[1]]
+        pxindx = px.indx[el[1]]
+        mdl = (t.MUX[tindx] - t.MUX[t.indx[bpmx1]]) % 1
+        exp = (px.PHASEX[pxindx] - px.PHASEX[px.indx[bpmx1]]) % 1
+        exp_mdl = (exp - mdl) % 1
+        if exp_mdl > 0.5:
+            exp_mdl = exp_mdl - 1
+        mdl_play = -t.MUX[tindx] + tp.MUX[tindx]
+        phase_error = propagate_error_phase(err_beta_start, err_alfa_start, exp, beta_start, alfa_start)
+        fx.add_table_row([el[1], px.S[pxindx], exp, exp_mdl, px.STDPHX[pxindx], phase_error, mdl_play, t.S[tindx]])
+    fx.write_to_file()
+
     #-vertical
-    filey = open(path+"sbsbetay_"+namename+".out","w")
-    fileya = open(path+"sbsalfay_"+namename+".out","w")
+    filey = open(path+"sbsbetay_"+namename+".out", "w")
+    fileya = open(path+"sbsalfay_"+namename+".out", "w")
 
     if switch == 0:
-        print >> filey,"* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S BETY2 ERRBETY2"
-        print >> filey,"$ %s %le %le %le %le %le %le %le %le %le  %le %le"
-        print >> fileya,"* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S ALFY2 ERRALFY2"
-        print >> fileya,"$ %s %le %le %le %le %le %le %le %le %le"
+        print >> filey, "* NAME S BETY ERRBETY  BETYAMP ERRBETYAMP BETYP ERRBETYP BETYMDL MDL_S BETY2 ERRBETY2"
+        print >> filey, "$ %s %le %le %le %le %le %le %le %le %le  %le %le"
+        print >> fileya, "* NAME S ALFY ERRALFY ALFYP ERRALFYP ALFMDL MODEL_S ALFY2 ERRALFY2"
+        print >> fileya, "$ %s %le %le %le %le %le %le %le %le %le"
     else:
-        print >> filey,"* NAME S BETY ERRBETY BETYMDL MDL_S BETY2 ERRBETY2"
-        print >> filey,"$ %s %le %le %le %le %le %le %le"
-        print >> fileya,"* NAME S ALFA ERRALFY ALFYMDL MDL_S ALFY2 ERRALFY2"
-        print >> fileya,"$ %s %le %le %le %le %le %le %le"
+        print >> filey, "* NAME S BETY ERRBETY BETYMDL MDL_S BETY2 ERRBETY2"
+        print >> filey, "$ %s %le %le %le %le %le %le %le"
+        print >> fileya, "* NAME S ALFA ERRALFY ALFYMDL MDL_S ALFY2 ERRALFY2"
+        print >> fileya, "$ %s %le %le %le %le %le %le %le"
 
+    bme = betav[0]  # measurement
+    bmea = betav[9]  # measurement amp
+    bmip = betav[1]  # min p
+    bmap = betav[2]  # max p
+    bmib = betav[3]  # min b
+    bmab = betav[4]  # max b
+    amip = betav[5]  # min p
+    amap = betav[6]  # max p
+    amib = betav[7]  # min b
+    amab = betav[8]  # max b
 
-    bme = betav[0] # measurement
-    bmea = betav[9] # measurement amp
-    bmip = betav[1] # min p
-    bmap = betav[2] # max p
-    bmib = betav[3] # min b
-    bmab = betav[4] # max b
-    amip = betav[5] # min p
-    amap = betav[6] # max p
-    amib = betav[7] # min b
-    amab = betav[8] # max b
-
-    if switch == 0: # only enter when it is a segment
+    if switch == 0:  # only enter when it is a segment
         bpms = intersect([bme, bmip, model, modelcor, modelp, modelb, bmea])
     else:
         bpms = intersect([bmip, model, modelcor, modelp, modelb])
@@ -1561,9 +1614,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         #beta model
         betam = model.BETY[model.indx[name]]
 
-
         #beta
-
         betape = abs(bmap.BETY[bmap.indx[name]]-bmip.BETY[bmip.indx[name]])
         betabe = abs(bmab.BETY[bmab.indx[name]]-bmib.BETY[bmib.indx[name]])
         #ebep=sqrt((1/betape)**2+(1/betabe)**2)/2
@@ -1585,10 +1636,8 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 #        delta_phase = (phasey.PHASEY[phasex.indx[name]] - phasex.PHASEY[phasey.indx[first_bpm]]) %1
 #        delta_phase = abs(phasey.PHASEY[phasey.indx[name]] - phasey.PHASEY[phasey.indx[first_bpm]]) %1
 
-
-
         if switch == 0:
-            delta_phase = (phasey.PHASEY[phasex.indx[name]] - phasex.PHASEY[phasey.indx[first_bpm]]) %1
+            delta_phase = (phasey.PHASEY[phasey.indx[name]] - phasey.PHASEY[phasey.indx[first_bpm]]) %1
             beta_s = bme.BETY[bme.indx[name]]
             alfa_s = bme.ALFY[bme.indx[name]]
 
@@ -1609,251 +1658,257 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
 
             print >> fileya, name, s, alfame, ealfame, aep, eaep, amo, smo, err_alfa_prop
         else:
-            delta_phase = (modelp.MUY[modelp.indx[name]] ) %1
+            delta_phase = (modelp.MUY[modelp.indx[name]]) %1
             beta_sp = modelp.BETY[modelp.indx[name]]
             alfa_sp = modelp.ALFY[modelp.indx[name]]
 
             err_beta_prop = propagate_error_beta(err_beta_start, err_alfa_start, delta_phase, beta_sp, beta_start, alfa_start)
             err_alfa_prop = propagate_error_alfa(err_beta_start, err_alfa_start, delta_phase, alfa_sp, beta_start, alfa_start)
-            
+
             betap = modelp.BETY[modelp.indx[name]]
             betab = modelb.BETY[modelb.indx[name]]
             bep = (1/(betape+betabe))*(betape*betap+betabe*betab)
             alfap = modelp.ALFY[modelp.indx[name]]
             alfab = modelb.ALFY[modelb.indx[name]]
             aep = (1/(alfape+alfabe))*(alfape*alfap+alfabe*alfab)
-            
-            
-            delta_phase = (modelb.MUY[modelb.indx[name]] ) %1
+
+            delta_phase = (modelb.MUY[modelb.indx[name]]) %1
             beta_sb = modelb.BETY[modelb.indx[name]]
             alfa_sb = modelb.ALFY[modelb.indx[name]]
-            
+
             last_bpm = bpms[-1][1]
             beta_end = bme.BETY[bme.indx[last_bpm]]
             alfa_end = -bme.ALFY[bme.indx[last_bpm]]
             err_beta_end = sqrt(bme.ERRBETY[bme.indx[last_bpm]]**2+bme.STDBETY[bme.indx[last_bpm]]**2)
             err_alfa_end = sqrt(bme.ERRALFY[bme.indx[last_bpm]]**2+bme.STDALFY[bme.indx[last_bpm]]**2)
-            
+
             err_beta_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
             err_alfa_back = propagate_error_beta(err_beta_end, err_alfa_end, delta_phase, beta_sb, beta_end, alfa_end)
 
-            
             beta_f = (1/err_beta_prop**2 *beta_sp + 1/err_beta_back**2 *beta_sb) / (1/err_beta_prop**2 + 1/err_beta_back**2)
             err_beta_f = sqrt(1 / (1/err_beta_prop**2 + 1/err_beta_back**2))
-            
+
             alfa_f = (1/err_alfa_prop**2 *alfa_sp + 1/err_alfa_back**2 *alfa_sb) / (1/err_alfa_prop**2 + 1/err_alfa_back**2)
-            err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))            
-            
-            
-            
-            
+            err_alfa_f = sqrt(1 / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
+
+            std_wght = sqrt(2 * (1/err_beta_prop**2 * (betap - beta_f)**2 + 1/err_beta_back**2 * (betab - beta_f)**2) / (1/err_beta_prop**2 + 1/err_beta_back**2))
+            err_beta_f = sqrt(err_beta_f**2 + std_wght**2)
+
+            std_wght = sqrt(2 * (1/err_alfa_prop**2 * (alfap - alfa_f)**2 + 1/err_alfa_back**2 * (alfab - alfa_f)**2) / (1/err_alfa_prop**2 + 1/err_alfa_back**2))
+            err_alfa_f = sqrt(err_alfa_f**2 + std_wght**2)
+
             print >> fileya, name, s, aep, eaep, amo, smo, alfa_f, err_alfa_f
             print >> filey, name, s, bep, ebep, betam, smo, beta_f, err_beta_f
 
             if namename in name:
                 print >> filesum_b, fileb1, round(bep, 2), round(ebep, 2), round(betam, 2), round(aep, 4), round(eaep, 4), round(amo, 4), round(smo, 2), round(beta_f, 4), round(err_beta_f, 4)
 
-
     filey.close()
     fileya.close()
 
-
     ##dispersion
-    if len(disph)!=0:
-        dme=disph[0]
-        dnme=disph[1]
-        dminp=disph[2]
-        dmaxp=disph[3]
-        dminb=disph[4]
-        dmaxb=disph[5]
+    if len(disph) != 0:
+        dme = disph[0]
+        dnme = disph[1]
+        dminp = disph[2]
+        dmaxp = disph[3]
+        dminb = disph[4]
+        dmaxb = disph[5]
 
             #dispersion
-        filex= open(path+'/sbsDx_'+namename+'.out','w')
+        filex = open(path+'/sbsDx_'+namename+'.out', 'w')
 
+        if switch == 0:
+            print >> filex, "* NAME  S  DX  STDDX  DX_MDL DX_PLAY EDX_PLAY DPX DPX_MDL DPX_PLAY EDPX_PLAY MODEL_S ERRDX"
+            print >> filex, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le"
 
-        if switch==0:
-            print >>filex,"* NAME  S  DX  STDDX  DX_MDL DX_PLAY EDX_PLAY DPX DPX_MDL DPX_PLAY EDPX_PLAY MODEL_S"
-            print >>filex,"$ %s %le %le %le %le %le %le %le %le %le %le %le"
-
-            bpms=intersect([dme,dminp,modelp,model,modelb])
+            bpms = intersect([dme, dminp, modelp, model, modelb])
         else:
-            print >>filex,"* NAME  S  DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY  MODEL_S"
-            print >>filex,"$ %s %le %le %le %le %le %le %le %le"
-            bpms=intersect([dminp,modelp,model,modelb])
-
-
+            print >> filex, "* NAME  S  DX_MDL DX_PLAY EDX_PLAY DPX_MDL DPX_PLAY EDPX_PLAY  MODEL_S DX2 ERRDX"
+            print >> filex, "$ %s %le %le %le %le %le %le %le %le %le %le"
+            bpms = intersect([dminp, modelp, model, modelb])
 
         for bpm in bpms:
-            s=bpm[0]
-            name=bpm[1]
+            s = bpm[0]
+            name = bpm[1]
+            first_bpm = bpms[0][1]
 
             #model
-            dmo=model.DX[model.indx[name]]
-            smo=model.S[model.indx[name]]
-            dpmo=model.DPX[model.indx[name]]
+            dmo = model.DX[model.indx[name]]
+            smo = model.S[model.indx[name]]
+            dpmo = model.DPX[model.indx[name]]
             # pro
-            dpe=abs(dmaxp.DX[dmaxp.indx[name]]-dminp.DX[dminp.indx[name]])
-            dbe=abs(dmaxb.DX[dmaxb.indx[name]]-dminb.DX[dminb.indx[name]])
-            dppe=abs(dmaxp.DPX[dmaxp.indx[name]]-dminp.DPX[dminp.indx[name]])
-            dpbe=abs(dmaxb.DPX[dmaxb.indx[name]]-dminb.DPX[dminb.indx[name]])
-            edep=sqrt((dpe)**2+(dbe)**2)/2
-            edepp=sqrt((dppe)**2+(dpbe)**2)/2
+            dpe = abs(dmaxp.DX[dmaxp.indx[name]] - dminp.DX[dminp.indx[name]])
+            dbe = abs(dmaxb.DX[dmaxb.indx[name]] - dminb.DX[dminb.indx[name]])
+            dppe = abs(dmaxp.DPX[dmaxp.indx[name]] - dminp.DPX[dminp.indx[name]])
+            dpbe = abs(dmaxb.DPX[dmaxb.indx[name]] - dminb.DPX[dminb.indx[name]])
+            edep = sqrt((dpe)**2+(dbe)**2)/2
+            edepp = sqrt((dppe)**2+(dpbe)**2)/2
+            delta_phase = (modelp.MUX[modelp.indx[name]]) %1
 
+            newerrD = propagate_error_dispersion(dme.STDDX[dme.indx[first_bpm]], modelp.BETX[modelp.indx[first_bpm]], modelp.BETX[modelp.indx[name]], delta_phase, modelp.ALFX[modelp.indx[first_bpm]])
 
-            if switch==0:
+            if switch == 0:
                 #mea
-                dmea=dme.DX[dme.indx[name]]
-                edmea=dme.STDDX[dme.indx[name]]
-                dpmea=dme.DPX[dme.indx[name]]
+                dmea = dme.DX[dme.indx[name]]
+                edmea = dme.STDDX[dme.indx[name]]
+                dpmea = dme.DPX[dme.indx[name]]
 
                 #pro
-                dep=modelcor.DX[modelcor.indx[name]]
-                depp=modelcor.DPX[modelcor.indx[name]]
+                dep = modelcor.DX[modelcor.indx[name]]
+                depp = modelcor.DPX[modelcor.indx[name]]
 
-                print >>filex,name,s,dmea,edmea,dmo,dep,edep,dpmea,dpmo,depp,edepp,smo
+                print >> filex, name, s, dmea, edmea, dmo, dep, edep, dpmea, dpmo, depp, edepp, smo, newerrD
             else:
-                dp=modelp.DX[modelp.indx[name]]
-                db=modelb.DX[modelb.indx[name]]
-                dep=(1/(dpe+dbe))*(dpe*dp+dbe*db)
+                dp = modelp.DX[modelp.indx[name]]
+                db = modelb.DX[modelb.indx[name]]
+                dep = (1/(dpe+dbe))*(dpe*dp+dbe*db)
 
-                dpp=modelp.DPX[modelp.indx[name]]
-                dpb=modelb.DPX[modelb.indx[name]]
+                dpp = modelp.DPX[modelp.indx[name]]
+                dpb = modelb.DPX[modelb.indx[name]]
                 try:
-                    depp=(1/(dppe+dpbe))*(dppe*dpp+dpbe*dpb)
+                    depp = (1/(dppe+dpbe))*(dppe*dpp + dpbe*dpb)
                 except:
-                    depp=0
+                    depp = 0
+                last_bpm = bpms[-1][1]
+                delta_phase_back = (modelb.MUX[modelb.indx[name]]) %1
+                newerrD_back = propagate_error_dispersion(dme.STDDX[dme.indx[last_bpm]], modelb.BETX[modelb.indx[last_bpm]], modelb.BETX[modelb.indx[name]], delta_phase_back, modelb.ALFX[modelb.indx[last_bpm]])
+                D_f = (1/newerrD**2 *modelp.DX[modelp.indx[name]] + 1/newerrD_back**2 *modelb.DX[modelb.indx[name]]) / (1/newerrD**2 + 1/newerrD_back**2)
+                err_D_f = sqrt(1 / (1/newerrD**2 + 1/newerrD_back**2))
 
-                print >>filex,name,s,dmo,dep,edep,dpmo,depp,edepp,smo
+                std_wght = sqrt(2 * (1/newerrD**2 * (modelp.DX[modelp.indx[name]]-D_f)**2 + 1/newerrD_back**2 * (modelb.DX[modelb.indx[name]]-D_f)**2) / (1/newerrD**2 + 1/newerrD_back**2))
+                err_D_f = sqrt(err_D_f**2 + std_wght**2)
+
+                print >> filex, name, s, dmo, dep, edep, dpmo, depp, edepp, smo, D_f, err_D_f
 
                 if namename in name:
-                    filed1=name+" "+str(s)+" "+str(dmo)+" "+str(dep)+" "+str(edep)+" "+str(dpmo)+" "+str(depp)+" "+str(edepp)
-
+                    filed1 = name+" "+str(s)+" "+str(dmo)+" "+str(dep)+" "+str(edep)+" "+str(dpmo)+" "+str(depp)+" "+str(edepp)+" "+str(D_f)+" "+str(err_D_f)
 
         filex.close()
 
             #normalized dispersion
-        filex= open(path+'/sbsNDx_'+namename+'.out','w')
+        filex = open(path+'/sbsNDx_'+namename+'.out', 'w')
 
-
-        if switch==0:
-            print >> filex,"* NAME  S  NDX   STDNDX NDX_MDL NDX_PLAY ENDX_PLAY MODEL_S "
-            print >> filex,"$ %s   %le  %le   %le   %le    %le %le    %le "
-            bpms=intersect([dnme,dminp,modelp,model,modelb,bme])
+        if switch == 0:
+            print >> filex, "* NAME  S  NDX   STDNDX NDX_MDL NDX_PLAY ENDX_PLAY MODEL_S "
+            print >> filex, "$ %s   %le  %le   %le   %le    %le %le    %le "
+            bpms = intersect([dnme, dminp, modelp, model, modelb, bme])
         else:
-            print >> filex,"* NAME  S  NDX_MDL NDX_PLAY ENDX_PLAY MODEL_S "
-            print >> filex,"$ %s   %le   %le    %le %le    %le "
-            bpms=intersect([dminp,modelp,model,modelb,modelcor])
+            print >> filex, "* NAME  S  NDX_MDL NDX_PLAY ENDX_PLAY MODEL_S "
+            print >> filex, "$ %s   %le   %le    %le %le    %le "
+            bpms = intersect([dminp, modelp, model, modelb, modelcor])
 
         for bpm in bpms:
-            s=bpm[0]
-            name=bpm[1]
+            s = bpm[0]
+            name = bpm[1]
 
             #model
-            dmo=model.DX[model.indx[name]]
-            smo=model.S[model.indx[name]]
+            dmo = model.DX[model.indx[name]]
+            smo = model.S[model.indx[name]]
 
                 # pro
-            dpe=(abs(dmaxp.DX[dmaxp.indx[name]]-dminp.DX[dminp.indx[name]]))/sqrt(modelp.BETX[modelp.indx[name]])
-            dbe=(abs(dmaxb.DX[dmaxb.indx[name]]-dminb.DX[dminb.indx[name]]))/sqrt(modelp.BETX[modelp.indx[name]])
+            dpe = (abs(dmaxp.DX[dmaxp.indx[name]] - dminp.DX[dminp.indx[name]])) / sqrt(modelp.BETX[modelp.indx[name]])
+            dbe = (abs(dmaxb.DX[dmaxb.indx[name]] - dminb.DX[dminb.indx[name]])) / sqrt(modelp.BETX[modelp.indx[name]])
             try:
-                edep=sqrt((1/dpe)**2+(1/dbe)**2)/2
+                edep = sqrt((1/dpe)**2+(1/dbe)**2)/2
             except:
-                edep=0
+                edep = 0
 
-            if switch==0:
+            if switch == 0:
                 #mea
-                dmea=dnme.NDX[dnme.indx[name]]
-                edmea=dnme.STDNDX[dnme.indx[name]]
+                dmea = dnme.NDX[dnme.indx[name]]
+                edmea = dnme.STDNDX[dnme.indx[name]]
                 #pro
-                dp=modelp.DX[modelp.indx[name]]/sqrt(modelp.BETX[modelp.indx[name]])
-                db=modelb.DX[modelb.indx[name]]/sqrt(modelb.BETX[modelp.indx[name]])
-                dep=(1/(dpe+dbe))*(dpe*dp+dbe*db)
+                dp = modelp.DX[modelp.indx[name]] / sqrt(modelp.BETX[modelp.indx[name]])
+                db = modelb.DX[modelb.indx[name]] / sqrt(modelb.BETX[modelp.indx[name]])
+                dep = (1/(dpe+dbe)) * (dpe*dp + dbe*db)
 
-                print >>filex,name,s,dmea,edmea,dmo,dep,edep,smo
+                print >> filex, name, s, dmea, edmea, dmo, dep, edep, smo
             else:
 
-                dep=modelcor.DX[modelcor.indx[name]]/sqrt(modelcor.BETX[modelcor.indx[name]])
-                print >>filex,name,s,dmo,dep,edep,smo
+                dep = modelcor.DX[modelcor.indx[name]] / sqrt(modelcor.BETX[modelcor.indx[name]])
+                print >> filex, name, s, dmo, dep, edep, smo
 
             #if namename in name:
 
                 #filed1=filed1+" "+str(dmo)+" "+str(dep)+" "+str(edep)
 
-
-
     #vertical dispersion
-    if len(dispv)!=0:
-        dme=dispv[0]
-        dminp=dispv[1]
-        dmaxp=dispv[2]
-        dminb=dispv[3]
-        dmaxb=dispv[4]
-        filey= open(path+'/sbsDy_'+namename+'.out','w')
+    if len(dispv) != 0:
+        dme = dispv[0]
+        dminp = dispv[1]
+        dmaxp = dispv[2]
+        dminb = dispv[3]
+        dmaxb = dispv[4]
+        filey = open(path + '/sbsDy_' + namename + '.out', 'w')
 
-
-
-        if switch==0:
-            bpms=intersect([dme,dminp,modelp,model,modelb])
-            print >>filey,"* NAME  S  DY  STDDY  DY_MDL DY_PLAY EDY_PLAY DPY DPY_MDL DPY_PLAY EDPY_PLAY MODEL_S"
-            print >>filey,"$ %s %le %le %le %le %le %le %le %le %le %le %le"
+        if switch == 0:
+            bpms = intersect([dme, dminp, modelp, model, modelb])
+            print >> filey, "* NAME  S  DY  STDDY  DY_MDL DY_PLAY EDY_PLAY DPY DPY_MDL DPY_PLAY EDPY_PLAY MODEL_S ERRDY"
+            print >> filey, "$ %s %le %le %le %le %le %le %le %le %le %le %le %le"
         else:
-            bpms=intersect([dminp,modelp,model,modelb])
-            print >>filey,"* NAME  S  DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY  MODEL_S"
-            print >>filey,"$ %s %le %le %le %le %le %le %le %le"
-
-
+            bpms = intersect([dminp, modelp, model, modelb])
+            print >> filey, "* NAME  S  DY_MDL DY_PLAY EDY_PLAY DPY_MDL DPY_PLAY EDPY_PLAY  MODEL_S DY2 ERRDY"
+            print >> filey, "$ %s %le %le %le %le %le %le %le %le %le %le"
 
         for bpm in bpms:
-            s=bpm[0]
-            name=bpm[1]
+            s = bpm[0]
+            name = bpm[1]
+            first_bpm = bpms[0][1]
 
             #model
-            dmo=model.DY[model.indx[name]]
-            smo=model.S[model.indx[name]]
-            dpmo=model.DPY[model.indx[name]]
+            dmo = model.DY[model.indx[name]]
+            smo = model.S[model.indx[name]]
+            dpmo = model.DPY[model.indx[name]]
             # pro
-            dpe=abs(dmaxp.DY[dmaxp.indx[name]]-dminp.DY[dminp.indx[name]])
-            dbe=abs(dmaxb.DY[dmaxb.indx[name]]-dminb.DY[dminb.indx[name]])
-            dppe=abs(dmaxp.DPY[dmaxp.indx[name]]-dminp.DPY[dminp.indx[name]])
-            dpbe=abs(dmaxb.DPY[dmaxb.indx[name]]-dminb.DPY[dminb.indx[name]])
-            edep=sqrt((dpe)**2+(dbe)**2)/2
-            edepp=sqrt((dppe)**2+(dpbe)**2)/2
+            dpe = abs(dmaxp.DY[dmaxp.indx[name]] - dminp.DY[dminp.indx[name]])
+            dbe = abs(dmaxb.DY[dmaxb.indx[name]] - dminb.DY[dminb.indx[name]])
+            dppe = abs(dmaxp.DPY[dmaxp.indx[name]] - dminp.DPY[dminp.indx[name]])
+            dpbe = abs(dmaxb.DPY[dmaxb.indx[name]] - dminb.DPY[dminb.indx[name]])
+            edep = sqrt((dpe)**2 + (dbe)**2)/2
+            edepp = sqrt((dppe)**2 + (dpbe)**2)/2
+            delta_phase = (modelp.MUY[modelp.indx[name]]) %1
+#TODO: Model Cor or normal one? also in horizontal
+            newerrD = propagate_error_dispersion(dme.STDDY[dme.indx[first_bpm]], modelp.BETY[modelp.indx[first_bpm]], modelp.BETY[modelp.indx[name]], delta_phase, modelp.ALFY[modelp.indx[first_bpm]])
 
-
-            if switch==0:
+            if switch == 0:
                 #mea
-                dmea=dme.DY[dme.indx[name]]
-                edmea=dme.STDDY[dme.indx[name]]
-                dpmea=dme.DPY[dme.indx[name]]
+                dmea = dme.DY[dme.indx[name]]
+                edmea = dme.STDDY[dme.indx[name]]
+                dpmea = dme.DPY[dme.indx[name]]
 
                 #pro
-                dep=modelcor.DY[modelcor.indx[name]]
-                depp=modelcor.DPY[modelcor.indx[name]]
+                dep = modelcor.DY[modelcor.indx[name]]
+                depp = modelcor.DPY[modelcor.indx[name]]
 
-                print >>filey,name,s,dmea,edmea,dmo,dep,edep,dpmea,dpmo,depp,edepp,smo
+                print >> filey, name, s, dmea, edmea, dmo, dep, edep, dpmea, dpmo, depp, edepp, smo, newerrD
             else:
-                dp=modelp.DY[modelp.indx[name]]
-                db=modelb.DY[modelb.indx[name]]
-                dep=(1/(dpe+dbe))*(dpe*dp+dbe*db)
+                dp = modelp.DY[modelp.indx[name]]
+                db = modelb.DY[modelb.indx[name]]
+                dep = (1/(dpe + dbe)) * (dpe*dp + dbe*db)
 
-                dpp=modelp.DPY[modelp.indx[name]]
-                dpb=modelb.DPY[modelb.indx[name]]
-                depp=(1/(dppe+dpbe))*(dppe*dpp+dpbe*dpb)
+                dpp = modelp.DPY[modelp.indx[name]]
+                dpb = modelb.DPY[modelb.indx[name]]
+                depp = (1/(dppe + dpbe)) * (dppe*dpp + dpbe*dpb)
 
-                print >>filey,name,s,dmo,dep,edep,dpmo,depp,edepp,smo
+                last_bpm = bpms[-1][1]
+                delta_phase_back = (modelb.MUY[modelb.indx[name]]) %1
+                newerrD_back = propagate_error_dispersion(dme.STDDY[dme.indx[last_bpm]], modelb.BETY[modelb.indx[last_bpm]], modelb.BETY[modelb.indx[name]], delta_phase_back, modelb.ALFY[modelb.indx[last_bpm]])
+                D_f = (1/newerrD**2 *modelp.DY[modelp.indx[name]] + 1/newerrD_back**2 *modelb.DY[modelb.indx[name]]) / (1/newerrD**2 + 1/newerrD_back**2)
+                err_D_f = sqrt(1 / (1/newerrD**2 + 1/newerrD_back**2))
 
+                std_wght = sqrt(2 * (1/newerrD**2 * (modelp.DY[modelp.indx[name]]-D_f)**2 + 1/newerrD_back**2 * (modelb.DY[modelb.indx[name]]-D_f)**2) / (1/newerrD**2 + 1/newerrD_back**2))
+                err_D_f = sqrt(err_D_f**2 + std_wght**2)
+                print >> filey, name, s, dmo, dep, edep, dpmo, depp, edepp, smo, D_f, err_D_f
 
                 if namename in name:
 
-                    if len(chromatic)!=0:
-                        filed1=filed1+" "+str(dmo)+" "+str(dep)+" "+str(edep)
+                    if len(chromatic) != 0:
+                        filed1 = filed1+" "+str(dmo)+" "+str(dep)+" "+str(edep)+" "+str(D_f)+" "+str(err_D_f)
                     else:
-                        print >>filesum_d,filed1,dmo,dep,edep,dpmo,depp,edepp,smo
-
-
-
-
+                        print >> filesum_d, filed1, dmo, dep, edep, dpmo, depp, edepp, smo, D_f, err_D_f
         filey.close()
+
     ##coupling
     couplemi=couple[2]
     couplema=couple[3]
@@ -1864,8 +1919,6 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
     modelp.Cmatrix()
     modelcor.Cmatrix()
     #modelb.Cmatrix()
-
-
 
     #if (switch==0) and (len(couple)!=0):
         #bpms=intersect([coupleme,couplemi,model])
@@ -1878,7 +1931,7 @@ def getAndWriteData(namename,phases,betah,betav,disph,dispv,couple,chromatic,mod
         #print >>filex2,"NAME S C11Me eC11Me C12Me eC12Me C21Me eC21Me C22Me eC22 ANGMe eANGMe C11Mo C12Mo C21Mo C22Mo ANDMo C11_cor eC11_cor C12_cor eC12_cor C21_cor eC21_cor C22_cor eC22_cor ANG_cor eANG_cor"
         #print >>filex2,"%s %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le %le"
 
-    if switch!=0:
+    if switch != 0:
         filex=open(path+'/sbscouple_'+namename+'.out','w')
         filex2=open(path+'/sbscouple2_'+namename+'.out','w')
         bpms=intersect([couplemi,model])

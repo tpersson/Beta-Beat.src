@@ -53,7 +53,8 @@ def main(datafile, tunex, tuney):
     :Return: int
         0 if execution was successful otherwise !=0
     '''
-    horizontal_data, vertical_data, horizontal_bpm_data, vertical_bpm_data, horizontal_positions, vertical_positions, horizontal_names, vertical_names = read_input_file(datafile)
+    horizontal_data, vertical_data, horizontal_bpm_data, vertical_bpm_data, \
+    horizontal_positions, vertical_positions, horizontal_names, vertical_names = read_input_file(datafile)
 
     #import matplotlib.pyplot as plt
     #plt.plot(freq, np.abs(a.real))
@@ -100,6 +101,7 @@ def read_input_file(datafile):
     horizontal_names = []
     vertical_names = []
     with open(datafile) as infile:
+#TODO: ---------------------------------------------------------------------------v
         for line in infile:
             if line.split(' ')[0] == '0':
                 horizontal_data.extend(float(x) for x in re.split('\s+', line)[3:1000])
@@ -129,11 +131,11 @@ def get_tune(tbt_data):
     t = np.arange(len(amp))
     freq = np.fft.fftfreq(t.shape[-1])
     temp = zip(freq, amp)
-    tune = max(temp, key = itemgetter(1))[0]
+    tune = max(temp, key=itemgetter(1))[0]
     return np.abs(tune)
 
 
-def harmonic_analysis(bpm_data, bpm_names, tune, order_phases = 1):
+def harmonic_analysis(bpm_data, bpm_names, tune, order_phases=1):
     '''
     Does x...
     :Parameters:
@@ -186,14 +188,14 @@ def write_data(input_file_name, horizontal_data, vertical_data, tune_x, tune_y):
         outfile.write("* NAME S    BINDEX SLABEL TUNEX MUX  AMPX PK2PK AMP01 PHASE01\n")
         outfile.write("$ %s  %le %le   %le   %le  %le %le %le  %le %le\n")
         for i in range(len(horizontal_data[0])):
-            outfile.write('"'+str(horizontal_data[0][i])+'" '+str(horizontal_data[1][horizontal_data[0][i]])+' '+str(i)+' '+str(1)+' '+str(horizontal_data[4])+' '+str(horizontal_data[2][horizontal_data[0][i]])+' '+str(horizontal_data[3][horizontal_data[0][i]])+' 1 '+str(horizontal_data[6][horizontal_data[0][i]])+' '+str(horizontal_data[5][horizontal_data[0][i]])+'\n')
+            outfile.write("".join(['"',str(horizontal_data[0][i]),'" ',str(horizontal_data[1][horizontal_data[0][i]]),' ',str(i),' 1 ',str(horizontal_data[4]),' ',str(horizontal_data[2][horizontal_data[0][i]]),' ',str(horizontal_data[3][horizontal_data[0][i]]),' 1 ',str(horizontal_data[6][horizontal_data[0][i]]),' ',str(horizontal_data[5][horizontal_data[0][i]]),'\n']))
     with open("".join([input_file_name, "_liny"]), 'w') as outfile:
         outfile.write("@ Q2 %le "+str(tune_y)+" \n")
         outfile.write("@ Q2RMS %le 0 \n")
         outfile.write("* NAME S    BINDEX SLABEL TUNEY MUY  AMPY PK2PK AMP10 PHASE10\n")
         outfile.write("$ %s  %le %le   %le   %le  %le %le %le %le %le\n")
         for i in range(len(vertical_data[0])):
-            outfile.write('"'+str(vertical_data[0][i])+'" '+str(vertical_data[1][vertical_data[0][i]])+' '+str(550+i)+' '+str(1)+' '+str(vertical_data[4])+' '+str(vertical_data[2][vertical_data[0][i]])+' '+str(vertical_data[3][vertical_data[0][i]])+' 1 '+str(vertical_data[6][vertical_data[0][i]])+' '+str(vertical_data[5][vertical_data[0][i]])+'\n')
+            outfile.write("".join(['"',str(vertical_data[0][i]),'" ',str(vertical_data[1][vertical_data[0][i]]),' ',str(550+i),' ',str(1),' ',str(vertical_data[4]),' ',str(vertical_data[2][vertical_data[0][i]]),' ',str(vertical_data[3][vertical_data[0][i]]),' 1 ',str(vertical_data[6][vertical_data[0][i]]),' ',str(vertical_data[5][vertical_data[0][i]]),'\n']))
 
     return 0
 
@@ -204,6 +206,6 @@ def write_data(input_file_name, horizontal_data, vertical_data, tune_x, tune_y):
 if __name__ == "__main__":
     (options, args) = parse_args()
 
-    return_value = main(datafile = options.datafile, tunex = options.tunex, tuney = options.tuney)
+    return_value = main(datafile=options.datafile, tunex=options.tunex, tuney=options.tuney)
 
     sys.exit(return_value)
