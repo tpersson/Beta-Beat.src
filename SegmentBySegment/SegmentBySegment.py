@@ -72,7 +72,6 @@ import __init__  # @UnusedImport used for appending paths
 import Utilities.iotools
 from Python_Classes4MAD.metaclass import twiss
 import Utilities.tfs_file_writer as tfs_writer
-from _xmlplus.xpath.BuiltInExtFunctions import join
 
 
 #===================================================================================================
@@ -155,7 +154,7 @@ def main(options):
     print "Twiss file ", twiss_file
     twiss_data = twiss(twiss_file)
 
-    twiss_relative_path = os.path.dirname(twiss_file) + os.path.sep
+    twiss_directory = os.path.dirname(twiss_file) + os.path.sep
 
     elements_names, start_bpms, end_bpms = structure_elements_info(elements_data)
 
@@ -198,7 +197,7 @@ def main(options):
                     element_name,
                     f_coupling_parameters,
                     options.path + "/",
-                    twiss_relative_path,
+                    twiss_directory,
                     input_data.couple_method)
 
         else:
@@ -463,14 +462,14 @@ class ErrorData(object):
 
 
 def modelIntersectgetf(exp, model):
-    bpmsin=[]
+    bpmsin = []
     for bpm in exp.NAME:
             try:
-                    check=model.indx[bpm.upper()]
+                    check = model.indx[bpm.upper()]
                     bpmsin.append([model.S[check], bpm])
             except:
                     print bpm, "Not in Model"
-    if len(bpmsin)==0:
+    if len(bpmsin) == 0:
             print "Zero intersection of Exp and Model"
             print "Please, provide a good Dictionary"
             print "Now we better leave!"
@@ -496,19 +495,19 @@ def intersect(ListOfFile):
     return result
 
 
-def filterandfind(betaxx, betayy, element, segment, model, errorcut):
+def filterandfind(beta_x_twiss, beta_y_twiss, element_name, segment_bpms_names, model, errorcut):
     '''
     Automatic BPM filter and BPM finder
 
     :Parameters:
-        'betaxx': twiss
+        'beta_x_twiss': twiss
             twiss for horizontal beta function
-        'betayy': twiss
+        'beta_y_twiss': twiss
             twiss for vertcal beta function
-        'element':
+        'element_name':
             instrument,collimator or IP . Specify as "null" if it as a segment
-        'segment':
-            leftbpm and rightbpm where you want to compute the segment
+        'segment_bpms_names':
+            leftbpm and rightbpm where you want to compute the segment_bpms_names
         'model': twiss
             twiss model
         'errorcut': float
@@ -519,132 +518,129 @@ def filterandfind(betaxx, betayy, element, segment, model, errorcut):
         If n BPMS is  < 3 => System exit
     '''
     # initial points
-    translate={}
-    location=[]
+    translate = {}  # this dict associates the position in the ring with the element name and if it's valid or not
+    locations_list = []
 
-    if element!="null":
-        seg=0
-        try:
-            sele=model.S[model.indx[element]]
-        except:
-            print >> sys.stderr, element, " Not found in model=> System exit"
+    if element_name != "null":
+        is_segment = False
+        if element_name in model.indx:
+            element_s = model.S[model.indx[element_name]]
+        else:
+            print >> sys.stderr, element_name, " Not found in model=> System exit"
             sys.exit()
-        location.append(sele)
-        translate[sele]=[1,element]
+        locations_list.append(element_s)
+        translate[element_s] = [True, element_name]
         print "You selected an element"
     else:
-        seg=1
-        bpml=segment[0]
-        bpmr=segment[1]
-        try:
-            sbpml=model.S[model.indx[bpml]]
-            sbpmr=model.S[model.indx[bpmr]]
-        except:
-            print >> sys.stderr, bpml,bpmr, " Not found in model=> System exit"
+        is_segment = True
+        left_bpm_name = segment_bpms_names[0]
+        right_bpm_name = segment_bpms_names[1]
+        if left_bpm_name in model.indx and right_bpm_name in model.indx:
+            left_bpm_s = model.S[model.indx[left_bpm_name]]
+            right_bpm_s = model.S[model.indx[right_bpm_name]]
+        else:
+            print >> sys.stderr, left_bpm_name, right_bpm_name, " Not found in model=> System exit"
             sys.exit()
-        location.append(sbpml)
-        location.append(sbpmr)
-        try:
-            betay=betayy.BETY[betayy.indx[bpml]]
-            betax=betaxx.BETX[betaxx.indx[bpml]]
-            betay=betayy.BETY[betayy.indx[bpmr]]
-            betax=betaxx.BETX[betaxx.indx[bpmr]]
-            translate[sbpml]=[1,bpml]
-            translate[sbpmr]=[1,bpmr]
-        except:
-            translate[sbpml]=[0,bpml]
-            translate[sbpmr]=[0,bpmr]
+        locations_list.append(left_bpm_s)
+        locations_list.append(right_bpm_s)
+
+        if (left_bpm_name in beta_y_twiss.indx and
+            left_bpm_name in beta_x_twiss.indx and
+            right_bpm_name in beta_y_twiss.indx and
+            right_bpm_name in beta_x_twiss.indx):
+            translate[left_bpm_s] = [True, left_bpm_name]
+            translate[right_bpm_s] = [True, right_bpm_name]
+        else:
+            translate[left_bpm_s] = [False, left_bpm_name]
+            translate[right_bpm_s] = [False, right_bpm_name]
 
         print "You selected a segment"
 
+    elements_names_in_model = model.NAME
 
-    names=model.NAME
-    goodones=0
+    number_of_good_bpms = 0
 
     #filtering
-    for name in names:
+    for current_element_name in elements_names_in_model:
 
-        if "BPM" in name:
-            s=model.S[model.indx[name]]
-            flag=0
-            try:
-                betay=betayy.BETY[betayy.indx[name]]
-                betax=betaxx.BETX[betaxx.indx[name]]
-                flag=1
-            except:
-                flag=0
+        if "BPM" in current_element_name:
+            current_element_s = model.S[model.indx[current_element_name]]
 
+            if current_element_name in beta_y_twiss.indx and current_element_name in beta_x_twiss.indx:
+                beta_y = beta_y_twiss.BETY[beta_y_twiss.indx[current_element_name]]
+                beta_x = beta_x_twiss.BETX[beta_x_twiss.indx[current_element_name]]
+                err_beta_x = beta_x_twiss.ERRBETX[beta_x_twiss.indx[current_element_name]]
+                stdbetax = beta_x_twiss.STDBETX[beta_x_twiss.indx[current_element_name]]
+                err_beta_y = beta_y_twiss.ERRBETY[beta_y_twiss.indx[current_element_name]]
+                stdbetay = beta_y_twiss.STDBETY[beta_y_twiss.indx[current_element_name]]
 
-            if flag==1:
-                errbetax=betaxx.ERRBETX[betaxx.indx[name]]
-                stdbetax=betaxx.STDBETX[betaxx.indx[name]]
-                errbetay=betayy.ERRBETY[betayy.indx[name]]
-                stdbetay=betayy.STDBETY[betayy.indx[name]]
+                total_err_x = sqrt(err_beta_x ** 2 + stdbetax ** 2)
+                total_err_y = sqrt(err_beta_y ** 2 + stdbetay ** 2)
 
-                errx=sqrt(errbetax**2+stdbetax**2)
-                erry=sqrt(errbetay**2+stdbetay**2)
+                #print (beta_x>0),(beta_y>0),(total_err_x<beta_x),(total_err_y<beta_y),(total_err_x>0),(total_err_y>0),(((total_err_x/beta_x)*100)<errorcut),(((total_err_y/beta_y)*100)<errorcut)
 
-                #print (betax>0),(betay>0),(errx<betax),(erry<betay),(errx>0),(erry>0),(((errx/betax)*100)<errorcut),(((erry/betay)*100)<errorcut)
+                if (beta_x > 0 and
+                    beta_y > 0 and
+                    beta_x > total_err_x and
+                    beta_y > total_err_y and
+                    total_err_x > 0 and
+                    total_err_y > 0 and
+                    ((total_err_x / beta_x) * 100) < errorcut and
+                    ((total_err_y / beta_y) * 100) < errorcut):
 
+                    translate[current_element_s] = [True, current_element_name]
+                    number_of_good_bpms = number_of_good_bpms + 1
+                    locations_list.append(current_element_s)
 
-                if (betax>0) and (betay>0) and (errx<betax) and (erry<betay) and (errx>0) and (erry>0) and (((errx/betax)*100)<errorcut) and(((erry/betay)*100)<errorcut):
-                    translate[s]=[1,name]
-                    goodones=goodones+1
-                    location.append(s)
+                elif is_segment and (left_bpm_name in current_element_name or right_bpm_name in current_element_name):
+                    translate[current_element_s] = [False, current_element_name]
 
-                elif seg==1 and (bpml in name or bpmr in name):
-                    translate[s]=[0,name] # exclude giving bpms for segment
-                    # TODO: remove it
-                    print >> sys.stderr, "Not in goodbpms:", translate[s]
-                    # if they dont pass the cut
-
-
-
-    location.sort()
-    if goodones<3:
+    locations_list.sort()
+    if number_of_good_bpms < 3:
         print >> sys.stderr, "Not enough BPMs! System exit"
         sys.exit()
 
     # finding the BPMs
-    if seg==0:
-        indin=location.index(sele)
+    if not is_segment:
+        element_location_index = locations_list.index(element_s)
 
-        if indin==0:
-            bpleft=translate[location[len(location)-2]][1]
-            bpright=translate[location[1]][1]
-        elif indin==(len(location)-1):
-            bpleft=translate[location[indin-1]][1]
-            bpright=translate[location[0]][1]
+        if element_location_index == 0:
+            selected_left_bpm = translate[locations_list[len(locations_list) - 2]][1]
+            selected_right_bpm = translate[locations_list[1]][1]
+        elif element_location_index == (len(locations_list) - 1):
+            selected_left_bpm = translate[locations_list[element_location_index - 1]][1]
+            selected_right_bpm = translate[locations_list[0]][1]
         else:
-            bpleft=translate[location[indin-1]][1]
-            bpright=translate[location[indin+1]][1]
+            selected_left_bpm = translate[locations_list[element_location_index - 1]][1]
+            selected_right_bpm = translate[locations_list[element_location_index + 1]][1]
 
     else:
-        fll=translate[sbpml][0]
-        flr=translate[sbpmr][0]
-        print fll,flr
+        left_bpm_is_good = translate[left_bpm_s][0]
+        right_bpm_is_good = translate[right_bpm_s][0]
+        print left_bpm_is_good, right_bpm_is_good
 
-        if fll==1:
-            bpleft=translate[sbpml][1]
+        if left_bpm_is_good:
+            selected_left_bpm = translate[left_bpm_s][1]
         else:
-            indin=location.index(sbpml)
-            if indin==0:
-                bpleft=translate[location[len(location)-2]][1]
+            element_location_index = locations_list.index(left_bpm_s)
+            if element_location_index == 0:
+                selected_left_bpm = translate[locations_list[len(locations_list) - 2]][1]
             else:
-                bpleft=translate[location[indin-1]][1]
+                selected_left_bpm = translate[locations_list[element_location_index - 1]][1]
 
-        if flr==1:
-            bpright=translate[sbpmr][1]
+        if right_bpm_is_good:
+            selected_right_bpm = translate[right_bpm_s][1]
         else:
-            indin=location.index(sbpmr)
-            if indin==(len(location)-1):
-                bpright=translate[location[0]][1]
+            element_location_index = locations_list.index(right_bpm_s)
+            if element_location_index == (len(locations_list) - 1):
+                selected_right_bpm = translate[locations_list[0]][1]
             else:
-                bpright=translate[location[indin+1]][1]
+                selected_right_bpm = translate[locations_list[element_location_index + 1]][1]
 
-    print bpleft,bpright," Will be used for the propogation"
+    print selected_left_bpm, selected_right_bpm, " Will be used for the propogation"
 
-    return [bpleft,bpright]
+    return [selected_left_bpm, selected_right_bpm]
+
 
 def TransverseDampers(twissp,twissb,element,model,savepath,phasex,phasey,errors):
     '''
