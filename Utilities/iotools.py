@@ -20,8 +20,6 @@ import sys
 import shutil
 
 
-
-
 def delete_content_of_dir(path_to_dir):
     '''
     Deletes all folders, files and symbolic links in given directory.
@@ -100,25 +98,39 @@ def deleteFilesWithoutGitignore(pathToDirectory):
 
     return True
 
+
 def exists_directory(path_to_dir):
     return os.path.isdir(path_to_dir)
 
+
 def not_exists_directory(path_to_dir):
     return not exists_directory(path_to_dir)
+
+
+def exists_file(path_to_file):
+    return os.path.isfile(path_to_file)
+
+
+def not_exists_file(path_to_file):
+    return not os.path.isfile(path_to_file)
+
 
 def get_absolute_path_to_betabeat_root():
     return os.path.abspath(
                     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir)
                     )
 
+
 def no_dirs_exist(*dirs):
     return not dirs_exist(*dirs)
+
 
 def dirs_exist(*dirs):
     for d in dirs:
         if not os.path.isdir(d):
             return False
     return True
+
 
 def get_all_filenames_in_dir_and_subdirs(path_to_dir):
     """ Looks for files(not dirs) in dir and subdirs and returns them as a list.  """
@@ -128,6 +140,7 @@ def get_all_filenames_in_dir_and_subdirs(path_to_dir):
     for root, sub_folders, files in os.walk(path_to_dir):  # @UnusedVariable
         result += files
     return result
+
 
 def get_all_absolute_filenames_in_dir_and_subdirs(path_to_dir):
     """ Looks for files(not dirs) in dir and subdirs and returns them as a list.  """
@@ -152,8 +165,10 @@ def get_all_dir_names_in_dir(path_to_dir):
             result.append(item)
     return result
 
+
 def is_empty_dir(directory):
     return 0 == os.listdir(directory)
+
 
 def is_not_empty_dir(directory):
     return not is_empty_dir(directory)
@@ -166,10 +181,12 @@ def read_all_lines_in_textfile(path_to_textfile):
     with open(path_to_textfile) as textfile:
         return textfile.read()
 
+
 def append_string_to_textfile(path_to_textfile, str_to_append):
     """ If file does not exist, a new file will be created. """
     with open(path_to_textfile, "a") as file_to_append:
         file_to_append.write(str_to_append)
+
 
 def write_string_into_new_file(path_to_textfile, str_to_insert):
     """ An existing file will be truncated. """
@@ -193,4 +210,3 @@ def replace_keywords_in_textfile(path_to_textfile, dict_for_replacing, new_outpu
     all_lines = read_all_lines_in_textfile(path_to_textfile)
     lines_with_replaced_keys = all_lines % dict_for_replacing
     write_string_into_new_file(destination_file, lines_with_replaced_keys)
-
