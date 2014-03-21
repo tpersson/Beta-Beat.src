@@ -72,7 +72,6 @@ import __init__  # @UnusedImport used for appending paths
 import Utilities.iotools
 from Python_Classes4MAD.metaclass import twiss
 import Utilities.tfs_file_writer as tfs_writer
-from compiler.pycodegen import EXCEPT
 
 
 #===================================================================================================
@@ -129,6 +128,7 @@ def parse_args():
 #===================================================================================================
 # main()-function
 #===================================================================================================
+
 
 def main(options):
     '''
@@ -209,49 +209,15 @@ def main(options):
 
         error_data = ErrorData(save_path, element_name)
 
-        phase_list = [input_data.phase_x, input_data.phase_y, input_data.total_phase_x, input_data.total_phase_y]
-        horizontal_beta_list = [input_data.beta_x,
-                 error_data.min_error_beta,
-                 error_data.max_error_beta,
-                 error_data.min_error_beta,
-                 error_data.max_error_beta,
-                 error_data.min_error_alpha,
-                 error_data.max_error_alpha,
-                 error_data.min_error_alpha_back,
-                 error_data.max_error_alpha_back,
-                 input_data.amplitude_beta_x]   # TODO: error_data.min_error_beta/max_error_beta 2x the same?
-
-        vertical_beta_list = [input_data.beta_y,
-                 error_data.min_error_beta,
-                 error_data.max_error_beta,
-                 error_data.min_error_beta,
-                 error_data.max_error_beta,
-                 error_data.min_error_alpha,
-                 error_data.max_error_alpha,
-                 error_data.min_error_alpha_back,
-                 error_data.max_error_alpha_back,
-                 input_data.amplitude_beta_y]
-
-        if input_data.has_dispersion:
-            horizontal_dispersion_list = [input_data.dispersion_x,
-                                          input_data.normalized_dispersion_x,
-                                          error_data.min_error_dispersion,
-                                          error_data.max_error_dispersion,
-                                          error_data.min_error_dispersion_back,
-                                          error_data.max_error_dispersion_back]
-            vertical_dispersion_list = [input_data.dispersion_y,
-                                        error_data.min_error_dispersion,
-                                        error_data.max_error_dispersion,
-                                        error_data.min_error_dispersion_back,
-                                        error_data.max_error_dispersion_back]
-        else:
-            horizontal_dispersion_list = []
-            vertical_dispersion_list = []
+        (phase_list,
+         horizontal_beta_list,
+         vertical_beta_list,
+         horizontal_dispersion_list,
+         vertical_dispersion_list) = structure_error_info_as_lists(input_data, error_data)
 
         couple = [input_data.couple, input_data.couple_terms, error_data.max_c_error, error_data.min_c_error]
         chromatic = []
 
-        # calling function to collect and write data
         print "Writing data for function ", element_name
         getAndWriteData(element_name,
                         phase_list,
@@ -424,6 +390,51 @@ def get_coupling_parameters(input_data, startbpm):
         print "Start BPM ", startbpm, " not found in coupling measurement => values=0"
     f_coupling_parameters = [f1001r, f1001i, f1010r, f1010i, f1001std, f1010std]
     return f_coupling_parameters
+
+
+def structure_error_info_as_lists(input_data, error_data):
+    phase_list = [input_data.phase_x, input_data.phase_y, input_data.total_phase_x, input_data.total_phase_y]
+    horizontal_beta_list = [input_data.beta_x,
+                            error_data.min_error_beta,
+                            error_data.max_error_beta,
+                            error_data.min_error_beta,
+                            error_data.max_error_beta,
+                            error_data.min_error_alpha,
+                            error_data.max_error_alpha,
+                            error_data.min_error_alpha_back,
+                            error_data.max_error_alpha_back,
+                            input_data.amplitude_beta_x]  # TODO: error_data.min_error_beta/max_error_beta 2x the same?
+    vertical_beta_list = [input_data.beta_y,
+                          error_data.min_error_beta,
+                          error_data.max_error_beta,
+                          error_data.min_error_beta,
+                          error_data.max_error_beta,
+                          error_data.min_error_alpha,
+                          error_data.max_error_alpha,
+                          error_data.min_error_alpha_back,
+                          error_data.max_error_alpha_back,
+                          input_data.amplitude_beta_y]
+    if input_data.has_dispersion:
+        horizontal_dispersion_list = [input_data.dispersion_x,
+                                      input_data.normalized_dispersion_x,
+                                      error_data.min_error_dispersion,
+                                      error_data.max_error_dispersion,
+                                      error_data.min_error_dispersion_back,
+                                      error_data.max_error_dispersion_back]
+        vertical_dispersion_list = [input_data.dispersion_y,
+                                    error_data.min_error_dispersion,
+                                    error_data.max_error_dispersion,
+                                    error_data.min_error_dispersion_back,
+                                    error_data.max_error_dispersion_back]
+    else:
+        horizontal_dispersion_list = []
+        vertical_dispersion_list = []
+
+    return (phase_list,
+            horizontal_beta_list,
+            vertical_beta_list,
+            horizontal_dispersion_list,
+            vertical_dispersion_list)
 
 
 class ErrorData(object):
@@ -2245,7 +2256,7 @@ def run4plot(path,spos,epos,beta4plot,cpath,meapath,name,qx,qy,accel,method):
 
 
 
-def GetPhaseEM(exp, mod):
+def GetPhaseEM(exp, mod):  # TODO this isn't used anywhere, can it be removed?
     phasem=[]
     bpm1=[]
     bpm2=[]
@@ -2298,7 +2309,7 @@ def GetPhaseEM(exp, mod):
 
     return bpm1, bpm2, s1, s2, phaseexp, phasem
 
-def writePhase(filename,bpm1, bpm2, s1, s2, phaseexp, phasem ):
+def writePhase(filename,bpm1, bpm2, s1, s2, phaseexp, phasem ):  # TODO this isn't used anywhere, can it be removed?
 
 
     f=open(filename, "w")
@@ -2307,7 +2318,7 @@ def writePhase(filename,bpm1, bpm2, s1, s2, phaseexp, phasem ):
 
     f.close()
 
-#delete
+#delete  TODO delete?? can this be removed??
 def reversetable(path,name):
     newFile=open(path+"/twiss_"+name+"_back_rev.dat",'w')
     base=twiss(path+"/twiss_"+name+"_back.dat")
@@ -2351,7 +2362,7 @@ def reversetable(path,name):
     newFile.close()
 
 
-#delete
+#delete TODO delete?? can this be removed??
 def createTables(outputname,path,columnnames,paranames,data,mainvariable,mainvalue):
 
     filefile=open(path+"/"+outputname,'w')
