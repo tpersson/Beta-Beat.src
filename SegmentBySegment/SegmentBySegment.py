@@ -283,8 +283,11 @@ def get_good_bpms(input_data, errorcut, twiss_data, start_bpms, end_bpms, elemen
         print "Segment has been choosen"
         is_an_instrument = 0
         segment = [start_bpms[element_name], end_bpms[element_name]]
-        start_bpm_name, end_bpm_name = filterandfind(input_data.beta_x, input_data.beta_y, "null", segment, twiss_data, errorcut)
-    elif element_name in start_bpms or element_name in end_bpms.has_key:
+        start_bpm_name, end_bpm_name = filterandfind(input_data.beta_x,
+                                                     input_data.beta_y,
+                                                     "null", segment,
+                                                     twiss_data, errorcut)
+    elif element_name in start_bpms or element_name in end_bpms:
         print >> sys.stderr, "Something strange ....Did you properly define the input ?"
         print >> sys.stderr, "Like: BPM1,BPM2,ARC12,IP1"
         print >> sys.stderr, "Structure must be for Segment => BPML,BPMR,NAME"
@@ -293,7 +296,12 @@ def get_good_bpms(input_data, errorcut, twiss_data, start_bpms, end_bpms, elemen
     else:
         print "Element has been choosen"
         is_an_instrument = 1
-        start_bpm_name, end_bpm_name = filterandfind(input_data.beta_x, input_data.beta_y, element_name, [], twiss_data, errorcut)
+        start_bpm_name, end_bpm_name = filterandfind(input_data.beta_x,
+                                                     input_data.beta_y,
+                                                     element_name,
+                                                     [],
+                                                     twiss_data,
+                                                     errorcut)
     return start_bpm_name, end_bpm_name, is_an_instrument
 
 
@@ -930,6 +938,7 @@ def TransverseDampers(twissp,twissb,element,model,savepath,phasex,phasey,errors)
 
     writer.close()
 
+
 def getIP(betameA,basetwiss,betatwiss,alfatwiss,model,phasex,phasey,name,accel,path):
     '''
     Function calculating the optics parameters at the IP
@@ -1075,11 +1084,12 @@ def getIP(betameA,basetwiss,betatwiss,alfatwiss,model,phasex,phasey,name,accel,p
 
     ##dispersion
 
-def getIPfromProp(betaip,errbetaip,alfaip,ealfaip):
+
+def getIPfromProp(betaip, errbetaip, alfaip, ealfaip):
 
     #values
-    betastar=betaip/(1+alfaip**2)
-    waist=alfaip*betaip #(sign flip)
+    betastar = betaip / (1 + alfaip ** 2)
+    waist = alfaip * betaip  # (sign flip)
 
     #errors
     ewaist=((ealfaip/abs(alfaip))+(errbetaip/abs(betaip)))*abs(waist)
@@ -1088,11 +1098,10 @@ def getIPfromProp(betaip,errbetaip,alfaip,ealfaip):
     waist=waist*100 # transferring to CM!!!!
     ewaist=ewaist*100 # transferring to CM!!!!
 
+    return round(betastar, 3), round(ebetastar, 3), round(waist, 3), round(ewaist, 3)
 
-    return round(betastar,3),round(ebetastar,3),round(waist,3),round(ewaist,3)
 
-
-def getIPfrompara(bpmleft,bpmright,betax,betay,phasex,phasey):
+def getIPfrompara(bpmleft, bpmright, betax, betay, phasex, phasey):
     '''
     Function calculating beta at IP (based on Rioichy thesis)
     b(s)=b*+(s^2/b*)
@@ -2223,36 +2232,36 @@ def runmad(path, name):
     os.system(options.mad + ' < ' + path + 't_' + str(name) + '.madx')
 
 
-def run4plot(path,spos,epos,beta4plot,cpath,meapath,name,qx,qy,accel,method):
-    if method=="driven": method=""   # patch to make it work at inj. rogelio
+def run4plot(save_path, start_point, end_point, beta4plot, beta_beat_path, measurements_path, element_name, qx, qy, accelerator, method):
+    if method == "driven":
+        method = ""   # patch to make it work at inj. rogelio
 
-    dict_for_replacing=dict(
-            PATH=path,
-            EndPoint=epos,
-            StartPoint=spos,
-            LABEL=name,
-            ACCEL=options.accel,
-            BETA=beta4plot,
-            QX=qx,
-            QY=qy,
-            METHOD=method,
-            MEA=meapath
-         )
+    dict_for_replacing = dict(PATH=save_path,
+                              EndPoint=end_point,
+                              StartPoint=start_point,
+                              LABEL=element_name,
+                              ACCEL=options.accel,
+                              BETA=beta4plot,
+                              QX=qx,
+                              QY=qy,
+                              METHOD=method,
+                              MEA=measurements_path
+                              )
 
-    if (name=="IP8" and accel=="LHCB2") or (name=="IP2" and accel=="LHCB1"):
-        maskfile='gplot.IP2IP8.mask'
+    if (element_name == "IP8" and accelerator == "LHCB2") or (element_name == "IP2" and accelerator == "LHCB1"):
+        maskfile = 'gplot.IP2IP8.mask'
     elif "RHIC" in options.accel:
-        maskfile='gplot_RHIC.mask'
+        maskfile = 'gplot_RHIC.mask'
     else:
-        maskfile='gplot.mask'
-    maskfile=os.path.join(cpath,'SegmentBySegment',maskfile)
+        maskfile = 'gplot.mask'
+    maskfile = os.path.join(beta_beat_path, 'SegmentBySegment', maskfile)
 
-    plotscript=os.path.join(path,'gplot_'+name)
+    plotscript = os.path.join(save_path, 'gplot_' + element_name)
 
     # read mask file, replace all keys and write to plot script:
     Utilities.iotools.replace_keywords_in_textfile(maskfile, dict_for_replacing, plotscript)
 
-    os.system("gnuplot "+plotscript)
+    os.system("gnuplot " + plotscript)
 
 
 
@@ -2509,9 +2518,9 @@ class _InputData(object):
 
     def __try_to_load_dispersion_files(self):
         if _all_exists_in_output_path("getDx.out", "getNDx.out", "getDy.out"):
-            self.dispersion_x = self.__try_to_load_twiss("getDx.out")
-            self.normalized_dispersion_x = self.__try_to_load_twiss("getNDx.out")
-            self.dispersion_y = self.__try_to_load_twiss("getDy.out")
+            self.dispersion_x = self.__try_to_load_twiss_from_output("getDx.out")
+            self.normalized_dispersion_x = self.__try_to_load_twiss_from_output("getNDx.out")
+            self.dispersion_y = self.__try_to_load_twiss_from_output("getDy.out")
             return (not self.dispersion_x is None and
                     not self.normalized_dispersion_x is None and
                     not self.dispersion_y is None)
@@ -2520,14 +2529,14 @@ class _InputData(object):
 
     def __try_to_load_coupling_files(self):
         if _all_exists_in_output_path("getcouple.out", "getcoupleterms.out"):
-            self.couple = self.__try_to_load_twiss("getcouple.out")
-            self.couple_terms = self.__try_to_load_twiss("getcoupleterms.out")
+            self.couple = self.__try_to_load_twiss_from_output("getcouple.out")
+            self.couple_terms = self.__try_to_load_twiss_from_output("getcoupleterms.out")
             return (not self.couple is None and
                     not self.couple_terms is None)
         else:
             return False
 
-    def __try_to_load_twiss(self, file_name):
+    def __try_to_load_twiss_from_output(self, file_name):
         try:
             twiss_data = twiss(_join_output_with(file_name))
         except ValueError:
