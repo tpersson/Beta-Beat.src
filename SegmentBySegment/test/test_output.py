@@ -157,17 +157,32 @@ class TestOutput(unittest.TestCase):
 
     def _compare_dirs_with_ndiff(self, valid_dir, to_check_dir):
         # sbsalfax_IP2.out has additional columns and need therefore a special config file
-        files_to_config_files = {"sbsalfax_IP2.out": self._get_special_cfg_file()}
+        # StartPoint.twiss has the creation date and time in it, we need to ignore that line
+        files_to_config_files = {
+                                 "sbsalfax_IP2.out": self._get_special_cfg_file_for_alfax_IP2(),
+                                 "StartPoint.twiss": self._get_special_cfg_file_for_start_point()
+                                 }
         self.assertTrue(
-                        Utilities.ndiff.compare_dirs_with_files_matching_regex_list(valid_dir, to_check_dir,
+                        Utilities.ndiff.compare_dirs_with_files_matching_regex_list(valid_dir,
+                                                                                    to_check_dir,
+                                                                                    None,
                                                                                     files_to_config_files),
                         "Directories not equal: " + valid_dir + " and " + to_check_dir
                         )
         Utilities.iotools.delete_item(files_to_config_files["sbsalfax_IP2.out"])
+        Utilities.iotools.delete_item(files_to_config_files["StartPoint.twiss"])
 
-    def _get_special_cfg_file(self):
+    def _get_special_cfg_file_for_alfax_IP2(self):
         cfg_str = "2-$ 0-8 any abs=1e-9 rel=1e-9 "
         path_to_cfg = self.path_to_input + "sbsalfax_IP2.out.cfg"
+        file_cfg = open(path_to_cfg, 'w')
+        print >> file_cfg, cfg_str
+        file_cfg.close()
+        return path_to_cfg
+
+    def _get_special_cfg_file_for_start_point(self):
+        cfg_str = "45 * skip "
+        path_to_cfg = self.path_to_input + "StartPoint.twiss.cfg"
         file_cfg = open(path_to_cfg, 'w')
         print >> file_cfg, cfg_str
         file_cfg.close()
