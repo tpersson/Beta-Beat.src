@@ -157,10 +157,29 @@ class TestOutput(unittest.TestCase):
 
     def _compare_dirs_with_ndiff(self, valid_dir, to_check_dir):
         # sbsalfax_IP2.out has additional columns and need therefore a special config file
-        # StartPoint.twiss has the creation date and time in it, we need to ignore that line
+        # The twiss files have the creation date and time in them, we need to ignore that line
         files_to_config_files = {
                                  "sbsalfax_IP2.out": self._get_special_cfg_file_for_alfax_IP2(),
-                                 "StartPoint.twiss": self._get_special_cfg_file_for_start_point()
+                                 "StartPoint.twiss": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.a-_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.a-.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.a+_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.a+.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.b-_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.b-.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.b+_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.b+.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.d-_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.d-.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.d+_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss.d+.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_IP2.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_IP2_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_IP2_cor.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_IP2_nom_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_IP2_play_back.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_c_max.dat": self._get_special_cfg_file_for_twiss(),
+                                 "twiss_c_min.dat": self._get_special_cfg_file_for_twiss()
                                  }
         self.assertTrue(
                         Utilities.ndiff.compare_dirs_with_files_matching_regex_list(valid_dir,
@@ -180,8 +199,9 @@ class TestOutput(unittest.TestCase):
         file_cfg.close()
         return path_to_cfg
 
-    def _get_special_cfg_file_for_start_point(self):
-        cfg_str = "45 * skip "
+    def _get_special_cfg_file_for_twiss(self):
+        cfg_str = "44 * skip\r\n"
+        cfg_str += "45 * skip "
         path_to_cfg = self.path_to_input + "StartPoint.twiss.cfg"
         file_cfg = open(path_to_cfg, 'w')
         print >> file_cfg, cfg_str

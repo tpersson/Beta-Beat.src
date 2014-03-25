@@ -2397,7 +2397,7 @@ class _InputData(object):
             print "No coupling file... will continue without taking into account coupling"
 
         if _exists(_join_output_with("getcouple_free.out")):
-            self.filecouple = twiss(_join_output_with("getcouple_free.out"))
+            self.couple = twiss(_join_output_with("getcouple_free.out"))
             self.couple_method = "_free"
             print "Free coupling found"
 
