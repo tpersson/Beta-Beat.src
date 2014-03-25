@@ -2264,69 +2264,6 @@ def run4plot(save_path, start_point, end_point, beta4plot, beta_beat_path, measu
     os.system("gnuplot " + plotscript)
 
 
-
-def GetPhaseEM(exp, mod):  # TODO this isn't used anywhere, can it be removed?
-    phasem=[]
-    bpm1=[]
-    bpm2=[]
-    s1=[]
-    s2=[]
-    phaseexp=[]
-    modName=mod.NAME
-    names=[]
-
-    for name in modName:
-
-        if "BPM" in name:
-
-            names.append(name)
-
-
-    for elm in names:
-        status=1
-        try:
-            expind=exp.indx[elm]
-        except:
-            print elm, "not found in exp"
-            status=0
-
-        if status==1:
-            el2=exp.NAME2[exp.indx[elm]]
-            elmind=mod.indx[elm]
-            try:
-                elm2ind=mod.indx[el2]
-            except:
-                print el2, "not found in model"
-                status=0
-
-            if status==1:
-                if "PHXMDL" in  exp.__dict__.keys():
-                    modphaseadv=mod.MUX[elm2ind]-mod.MUX[elmind]
-                    phaseexp.append(exp.PHASEX[expind])
-
-                elif "PHYMDL" in  exp.__dict__.keys():
-                    modphaseadv=mod.MUY[elm2ind]-mod.MUY[elmind]
-                    phaseexp.append(exp.PHASEY[expind])
-
-
-                bpm1.append(elm)
-                bpm2.append(mod.NAME[elm2ind])
-                s1.append(mod.S[elmind])
-                s2.append(mod.S[elm2ind])
-                phasem.append(modphaseadv)
-
-
-    return bpm1, bpm2, s1, s2, phaseexp, phasem
-
-def writePhase(filename,bpm1, bpm2, s1, s2, phaseexp, phasem ):  # TODO this isn't used anywhere, can it be removed?
-
-
-    f=open(filename, "w")
-    for i in range(len(bpm1)):
-        print >>f, bpm1[i], bpm2[i], s1[i], s2[i], phaseexp[i], phasem[i]
-
-    f.close()
-
 #delete  TODO delete?? can this be removed??
 def reversetable(path,name):
     newFile=open(path+"/twiss_"+name+"_back_rev.dat",'w')
@@ -2369,58 +2306,6 @@ def reversetable(path,name):
         newFile.write(str(bpm)+' '+str(endpos-ss)+' '+str(bex)+' '+str(alx)+' '+str(bey)+' '+str(aly)+'  '+str(dex)+' '+str(depx)+' '+str(dey)+' '+str(depy)+' '+str(muxx)+' '+str(muyy)+'\n')
 
     newFile.close()
-
-
-#delete TODO delete?? can this be removed??
-def createTables(outputname,path,columnnames,paranames,data,mainvariable,mainvalue):
-
-    filefile=open(path+"/"+outputname,'w')
-
-    # writing main variables
-    if len(mainvariable)==len(mainvalue):
-        for count in range(len(mainvariable)):
-
-            if isinstance(mainvalue[count],str):
-                filefile.write('@ '+mainvariable[count]+' %s '+str(mainvalue[count])+'\n')
-
-            else:
-                filefile.write('@ '+mainvariable[count]+' %le '+str(mainvalue[count])+'\n')
-    else:
-        print "cannot write main variables ..."
-
-    # writing columnnames and paranames
-
-    print len(columnnames),len(paranames),outputname
-
-
-    if len(columnnames)==len(paranames):
-
-
-        filefile.write('* '+'  '.join(columnnames)+'\n')
-        filefile.write('$ '+'  '.join(paranames)+'\n')
-
-        #writing data
-        #
-        # data[x][y]
-        #
-        #   x = data set
-        #   y = data in data set
-        #   => has to bed added in same order
-        #
-
-        for y in range(len(data)):
-
-            filefile.write(str(data[y])+'\n')
-
-
-
-
-    else:
-
-        print >> sys.stderr, "cannot create table names for columns are not equal => system exit "
-        sys.exit()
-
-    filefile.close()
 
 
 def _try_to_load_twiss(file_path):
