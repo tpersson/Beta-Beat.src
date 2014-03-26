@@ -19,9 +19,11 @@ import __init__  # @UnusedImport init will include paths
 import Utilities.iotools
 import Utilities.ndiff
 import madxrunner
+import pstats
 
 _SHORT_RUN = False  # If True, SBS will only run on first dir
 _NO_VALID_RUN = True  # If True, will not run valid SBS except if no valid output files are available
+_SHOW_SLOWEST_CALLS = True  # If True, will show a list of the most time consuming calls in the script
 
 _TestOutput__ARGUMENTS_FILE_NAME = "arguments.txt"  # This file is located in the input run dirs. Stores arguments for sbs
 
@@ -38,6 +40,8 @@ class TestOutput(unittest.TestCase):
     successful = False
 
     def setUp(self):
+        if(_SHOW_SLOWEST_CALLS):
+            self.profile_file_path = os.path.join(self.path_to_input, "prof_results")
         self._check_if_valid_output_exist_and_set_attribute()
         self._delete_modified_and_if_desired_valid_output()
 
@@ -127,6 +131,8 @@ class TestOutput(unittest.TestCase):
 
     def _run_sbs(self, path_to_sbs, arguments_list):
         call_command = os.path.abspath(path_to_sbs) + " " + " ".join(arguments_list)
+        if(_SHOW_SLOWEST_CALLS):
+            call_command = " -m cProfile -o " + self.profile_file_path + " " + call_command
         call_command = sys.executable + " " + call_command
 
         process = subprocess.Popen(call_command,
@@ -150,10 +156,15 @@ class TestOutput(unittest.TestCase):
         print "  Comparing output files"
         valid_dir = os.path.join(self.path_to_valid, dir_name)
         to_check_dir = os.path.join(self.path_to_to_check, dir_name)
-#            self._compare_dir_with_filecmp(valid_dir, to_check_dir)
-#             self._compare_dir_almost_equal_doubles(valid_dir, to_check_dir)
+
         self._compare_dirs_with_ndiff(valid_dir, to_check_dir)
         TestOutput.successful = True
+        if(_SHOW_SLOWEST_CALLS):
+            stats = pstats.Stats(self.profile_file_path)
+            print "Test successful"
+            print "Most time consuming calls:"
+            stats.strip_dirs().sort_stats('cumulative').print_stats(10)
+            Utilities.iotools.delete_item(self.profile_file_path)
 
     def _compare_dirs_with_ndiff(self, valid_dir, to_check_dir):
         # sbsalfax_IP2.out has additional columns and need therefore a special config file
