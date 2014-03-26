@@ -1,0 +1,267 @@
+title, "V6.5: new IR3/7, moved Q3 in IR1/2/5/8 -  March 2004" ;
+
+ system,"ln -fns /afs/cern.ch/eng/lhc/optics/V6.503 db5";
+ system,"ln -fns /afs/cern.ch/eng/lhc/optics/V6.503 db";
+ system,"ln -fns /afs/cern.ch/eng/lhc/optics/V6.5/toolkit lt";
+ system,"ln -fns /afs/cern.ch/eng/lhc/optics/V6.500/ ds";
+ system,"ln -fns /afs/cern.ch/eng/lhc/optics/ATS_V6.503 ats"; ! To allow to use ATS optics
+
+
+
+
+ option, -echo, -info,  warn;
+ call,   file = "db/as-built/V6.5.seq";
+!call,   file = "db/as-built/V6.5.inj.str";
+call,  file="SbS_fin///modifiers.madx";
+call, file = "/afs/cern.ch/eng/lhc/optics/V6.503//install_additional_elements.madx";
+
+!call, file= "/nfs/cs-ccr-nfs4/lhc_data/OP_DATA/Betabeat/Extractions/str_inj.str";
+
+
+
+! temporaery compensation of wrong sign in LSA
+!temp = (-1 * kq4.lr7);
+!kq4.lr7 := temp;
+
+beam, particle = proton, sequence=LHCB1, energy = 450.0, bv=1;
+beam, particle = proton, sequence=LHCB2, energy = 450.0, bv=-1;
+
+
+
+
+
+seqedit, sequence=LHCB1;
+flatten;
+install, element=BGI,class=MARKER,at=real;
+cycle, start=MSIA.EXIT.B1;
+endedit;
+
+
+seqedit, sequence=LHCB1;
+flatten;
+install, element=BGI_B1,class=MARKER,at=6794.45142;
+endedit;
+
+
+seqedit, sequence=LHCB2;
+flatten;
+install, element=BGI_B2,class=MARKER,at=13255.4495;
+endedit;
+
+use, period=LHCB1;
+select, flag=twiss, clear;
+select, flag=twiss, range=BPMWB.4R5.B1;
+select, flag=twiss, range=BPMWB.4L5.B1, column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy, wx, phix, wy, phiy;
+twiss, file="SbS_fin///StartPoint.twiss";
+
+!use, period=LHCB1;
+!select, flag=twiss, clear;
+!select, flag=twiss, range=BPMWB.4R5.B1, column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy;
+!twiss, file="SbS_fin///EndPoint.twiss";
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!mathing
+!call, file="SbS_fin///matchjob4_IP5_sbs.madx";
+!!!!!!!!!!! end matching
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! normal propogation
+
+
+!!
+!!  Start at the first BPM
+!!
+
+seqedit, sequence=LHCB1;
+cycle, start=BPMWB.4L5.B1;
+endedit;
+
+
+
+!!
+!! Save initial beta in beta0 variable
+!!
+
+use, period=LHCB1, range=BPMWB.4L5.B1/BPMWB.4L5.B1;  ! Just the starting element for speed
+savebeta,label=b0, place=BPMWB.4L5.B1;
+twiss ,chrom, betx=1434.65684374, alfx=-1.68626243665, bety=491.982042326, alfy=-8.58682182917,dx=0.152142616034,dy=0.135997894515,dpx=-0.000876993606031,dpy=0.0018328849573, wx=0, phix=0, wy=0, phiy=0;
+
+!!
+!!!! Matching for coupling initial cond, R matrix
+!!
+
+select, flag=twiss, clear;
+select, flag=twiss, pattern=BPM ,column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy, wx, phix, wy, phiy;
+
+MATCH,USE_MACRO;
+VARY, name=ir11, step=0.00001;
+VARY, name=ir12, step=0.00001;
+VARY, name=ir21, step=0.00001;
+VARY, name=ir22, step=0.00001;
+
+M1: MACRO={
+    savebeta,label=b1,place=BPMWB.4L5.B1;  ! This will update b1 with all the betas and coupling input
+    twiss,beta0=b0, chrom, R11=ir11,R12=ir12,R21=ir21,R22=ir22,file="SbS_fin///twiss_IP5.dat";
+    system, "/usr/bin/python SbS_fin///getfterms.py -p SbS_fin/// -l IP5 -f 1 -m _free";
+    call, file="SbS_fin///initvals.dat";
+}
+
+ CONSTRAINT, EXPR= f1001r= 0.000000;
+ CONSTRAINT, EXPR= f1001i= 0.000000;
+ CONSTRAINT, EXPR= f1010r= 0.000000;
+ CONSTRAINT, EXPR= f1010i= 0.000000;
+
+    lmdif, TOLERANCE=1.0E-6;
+ENDMATCH;
+
+
+
+
+!use, period=LHCB1, range=BPMWB.4L5.B1/BPMWB.4R5.B1;
+!select, flag=twiss, clear;
+!select, flag=twiss, class=quadrupole;
+!select, flag=twiss, class=monitor;
+!select, flag=twiss, class=rcollimator;
+!select, flag=twiss, class=marker;
+!select, flag=twiss, class=tkicker;
+!select, flag=twiss, class=instrument,column=name,s,L, K1l;
+!twiss, betx=1434.65684374, alfx=-1.68626243665, bety=491.982042326, alfy=-8.58682182917,dx=0.152142616034,dy=0.135997894515,dpx=-0.000876993606031,dpy=0.0018328849573, file="SbS_fin///twiss_IP5_nom.dat";
+
+
+
+use, period=LHCB1, range=BPMWB.4L5.B1/BPMWB.4R5.B1;
+select, flag=twiss, clear;
+select, flag=twiss, class=quadrupole;
+select, flag=twiss, class=monitor;
+select, flag=twiss, class=rcollimator;
+select, flag=twiss, class=marker;
+select, flag=twiss, class=rbend;
+select, flag=twiss, class=tkicker;
+select,flag=twiss,pattern="XRP";
+select, flag=twiss, class=instrument,column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy, L,K1l,wx,phix,wy,phiy;
+
+
+twiss, beta0=b1, chrom, file="SbS_fin///twiss_IP5.dat";
+
+!
+! Write here some correction
+!
+
+twiss, beta0=b1, chrom, file="SbS_fin///twiss_IP5_cor.dat";
+
+system, "/usr/bin/python SbS_fin///getfterms.py -p SbS_fin/// -l IP5 -e /home/alangner/afs_work/Dispersion_2012/Beam1/Results_fin/ -s BPMWB.4L5.B1 -m _free";
+
+
+!
+! Please remove the correction if you want the rest to make sense
+!
+
+
+twiss, beta0=b1, betx=1434.65684374+31.1446451554, bety=491.982042326+9.46030415608, file="SbS_fin///twiss.b+.dat";
+twiss, beta0=b1, betx=1434.65684374-31.1446451554, bety=491.982042326-9.46030415608, file="SbS_fin///twiss.b-.dat";
+twiss, beta0=b1, alfx=-1.68626243665+0.188207100999, alfy=-8.58682182917+0.203210503169, file="SbS_fin///twiss.a+.dat";
+twiss, beta0=b1, alfx=-1.68626243665-0.188207100999, alfy=-8.58682182917-0.203210503169, file="SbS_fin///twiss.a-.dat";
+twiss, beta0=b1, dx=0.152142616034+0.0594642482056,dy=0.135997894515+0.0352455624083, file="SbS_fin///twiss.d+.dat";
+twiss, beta0=b1, dx=0.152142616034-0.0594642482056,dy=0.135997894515-0.0352455624083, file="SbS_fin///twiss.d-.dat";
+
+
+!!!!!! errors coupling max
+
+MATCH,USE_MACRO;
+VARY, name=ir11, step=0.00001;
+VARY, name=ir12, step=0.00001;
+VARY, name=ir21, step=0.00001;
+VARY, name=ir22, step=0.00001;
+
+M1: MACRO={
+    savebeta,label=b1,place=BPMWB.4L5.B1;  ! This will update b1 with all the betas and coupling input
+    twiss,beta0=b0, chrom, R11=ir11,R12=ir12,R21=ir21,R22=ir22,file="SbS_fin///twiss_IP5.dat";
+    system, "/usr/bin/python SbS_fin///getfterms.py -p SbS_fin/// -l IP5  -e /home/alangner/afs_work/Dispersion_2012/Beam1/Results_fin/ -s BPMWB.4L5.B1 -f 1 -m _free";
+    call, file="SbS_fin///initvals.dat";
+}
+
+ CONSTRAINT, EXPR= f1001r= 0.000000;
+ CONSTRAINT, EXPR= f1001i= 0.000000;
+ CONSTRAINT, EXPR= f1010r= 0.000000;
+ CONSTRAINT, EXPR= f1010i= 0.000000;
+
+    lmdif, TOLERANCE=1.0E-6;
+ENDMATCH;
+
+twiss, beta0=b1, chrom, file="SbS_fin///twiss_c_max.dat";
+
+
+!!!!!! errors coupling min
+
+MATCH,USE_MACRO;
+VARY, name=ir11, step=0.00001;
+VARY, name=ir12, step=0.00001;
+VARY, name=ir21, step=0.00001;
+VARY, name=ir22, step=0.00001;
+
+M1: MACRO={
+    savebeta,label=b1,place=BPMWB.4L5.B1;  ! This will update b1 with all the betas and coupling input
+    twiss,beta0=b0, chrom, R11=ir11,R12=ir12,R21=ir21,R22=ir22,file="SbS_fin///twiss_IP5.dat";
+    system, "/usr/bin/python SbS_fin///getfterms.py -p SbS_fin/// -l IP5  -e /home/alangner/afs_work/Dispersion_2012/Beam1/Results_fin/ -s BPMWB.4L5.B1 -f 1 -m _free";
+    call, file="SbS_fin///initvals.dat";
+}
+
+ CONSTRAINT, EXPR= f1001r= 0.000000;
+ CONSTRAINT, EXPR= f1001i= 0.000000;
+ CONSTRAINT, EXPR= f1010r= 0.000000;
+ CONSTRAINT, EXPR= f1010i= 0.000000;
+
+    lmdif, TOLERANCE=1.0E-6;
+ENDMATCH;
+
+twiss, beta0=b1, chrom, file="SbS_fin///twiss_c_min.dat";
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! back propagation
+
+
+seqedit, sequence=LHCB1;
+cycle, start=BPMWB.4R5.B1;
+flatten;reflect; ! reverse command
+endedit;
+
+use, period=LHCB1, range=BPMWB.4R5.B1/BPMWB.4L5.B1;
+select, flag=twiss, clear;
+select, flag=twiss, class=quadrupole;
+select, flag=twiss, class=monitor;
+select, flag=twiss, class=rcollimator;
+select, flag=twiss, class=marker;
+select, flag=twiss, class=tkicker;
+select, flag=twiss, class=rbend;
+select,flag=twiss,pattern="XRP";
+select, flag=twiss, class=instrument,column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy;
+twiss, betx=490.049538953, alfx=-8.52748525287, bety=1466.23920686, alfy=-1.5906771063, file="SbS_fin///twiss_IP5_nom_back.dat";
+
+
+
+use, period=LHCB1, range=BPMWB.4R5.B1/BPMWB.4L5.B1;
+select, flag=twiss, clear;
+select, flag=twiss, class=quadrupole;
+select, flag=twiss, class=monitor;
+select, flag=twiss, class=rcollimator;
+select, flag=twiss, class=marker;
+select, flag=twiss, class=tkicker;
+select, flag=twiss, class=rbend;
+select,flag=twiss,pattern="XRP";
+select, flag=twiss, class=instrument,column=name,s,betx,alfx,bety,alfy,mux,muy, dx, r11,r12, r22,r21, x,y,dx,dy,dpx,dpy;
+
+
+
+twiss, betx=490.049538953, alfx=-8.52748525287, bety=1466.23920686, alfy=-1.5906771063,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss_IP5_back.dat";
+twiss, betx=490.049538953, alfx=-8.52748525287, bety=1466.23920686, alfy=-1.5906771063,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss_IP5_play_back.dat";
+twiss, betx=490.049538953+9.6544129266, alfx=-8.52748525287, bety=1466.23920686+19.7680844461, alfy=-1.5906771063,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.b+_back.dat";
+twiss, betx=490.049538953-9.6544129266, alfx=-8.52748525287, bety=1466.23920686-19.7680844461, alfy=-1.5906771063,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.b-_back.dat";
+twiss, betx=490.049538953, alfx=-8.52748525287+0.249890403391, bety=1466.23920686, alfy=-1.5906771063+0.140199839348,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.a+_back.dat";
+twiss, betx=490.049538953, alfx=-8.52748525287-0.249890403391, bety=1466.23920686, alfy=-1.5906771063-0.140199839348,dx=-0.116249367089,dy=-0.202521350211,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.a-_back.dat";
+twiss, betx=490.049538953, alfx=-8.52748525287, bety=1466.23920686, alfy=-1.5906771063,dx=-0.116249367089+0.00556904087037,dy=-0.202521350211+0.0376181879886,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.d+_back.dat";
+twiss, betx=490.049538953, alfx=-8.52748525287, bety=1466.23920686, alfy=-1.5906771063,dx=-0.116249367089-0.00556904087037,dy=-0.202521350211-0.0376181879886,dpx=0.000951136924348,dpy=0.000772726256314, file="SbS_fin///twiss.d-_back.dat";
+
+
+stop;
+

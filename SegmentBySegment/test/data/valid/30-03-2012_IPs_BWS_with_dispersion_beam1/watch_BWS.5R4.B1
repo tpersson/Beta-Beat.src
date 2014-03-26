@@ -1,0 +1,1 @@
+python /afs/cern.ch/eng/sl/lintrack/Beta-Beat.src/SegmentBySegment/watch.py SbS_fin//t_BWS.5R4.B1.madx SbS_fin///gplot_BWS.5R4.B1

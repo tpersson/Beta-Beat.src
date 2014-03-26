@@ -1,0 +1,49 @@
+@ NAME             %05s "TWISS"
+@ TYPE             %05s "TWISS"
+@ SEQUENCE         %05s "LHCB1"
+@ PARTICLE         %06s "PROTON"
+@ MASS             %le         0.938272046
+@ CHARGE           %le                   1
+@ ENERGY           %le                 450
+@ PC               %le         449.9990218
+@ GAMMA            %le         479.6050377
+@ KBUNCH           %le                   1
+@ BCURRENT         %le                   0
+@ SIGE             %le                   0
+@ SIGT             %le                   0
+@ NPART            %le                   0
+@ EX               %le                   1
+@ EY               %le                   1
+@ ET               %le                   1
+@ LENGTH           %le          26658.8832
+@ ALFA             %le     0.0003212213322
+@ ORBIT5           %le                  -0
+@ GAMMATR          %le         55.79532486
+@ Q1               %le         64.31000059
+@ Q2               %le         59.31999991
+@ DQ1              %le        -52.00077709
+@ DQ2              %le        -52.07526752
+@ DXMAX            %le         2.859817107
+@ DYMAX            %le                   0
+@ XCOMAX           %le                   0
+@ YCOMAX           %le                   0
+@ BETXMAX          %le         4036.120661
+@ BETYMAX          %le         4036.122063
+@ XCORMS           %le                   0
+@ YCORMS           %le                   0
+@ DXRMS            %le         1.393518454
+@ DYRMS            %le                   0
+@ DELTAP           %le                   0
+@ SYNCH_1          %le                   0
+@ SYNCH_2          %le                   0
+@ SYNCH_3          %le                   0
+@ SYNCH_4          %le                   0
+@ SYNCH_5          %le                   0
+@ TITLE            %52s "V6.5: new IR3/7, moved Q3 in IR1/2/5/8 -  March 2004"
+@ ORIGIN           %22s "MAD-X 5.02.00 Linux 64"
+@ DATE             %08s "19/03/14"
+@ TIME             %08s "21.07.10"
+* NAME                                S               BETX               ALFX               BETY               ALFY                MUX                MUY                 DX                R11                R12                R22                R21                  X                  Y                 DY                DPX                DPY                 WX               PHIX                 WY               PHIY 
+$ %s                                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le                %le 
+ "BPMWA.B5R4.B1"            6890.438933        186.5908042       0.3604570915        166.8773003      -0.8866085558        16.22921007        15.25429788    -0.009702017381                 -0                  0                  0                 -0                  0                  0                  0    3.109596619e-05                  0                  0                  0                  0                  0
+ "BPMYB.5R4.B1"             6992.829433        192.9492312       -3.420948041        419.8783654        5.419477993        16.32456991        15.31455048      -0.1250773419                 -0                  0                  0                 -0                  0                  0                  0    -0.002020142673                  0                  0                  0                  0                  0

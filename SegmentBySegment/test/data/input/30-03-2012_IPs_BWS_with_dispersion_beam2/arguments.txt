@@ -1,0 +1,1 @@
+-a LHCB2 -s IP1,IP2,IP5,IP8,BWS.5L4.B2 -c 5
