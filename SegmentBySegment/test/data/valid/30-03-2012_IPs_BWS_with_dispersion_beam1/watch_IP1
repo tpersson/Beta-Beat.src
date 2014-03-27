@@ -1,1 +1,0 @@
-python /afs/cern.ch/eng/sl/lintrack/Beta-Beat.src/SegmentBySegment/watch.py SbS_fin//t_IP1.madx SbS_fin///gplot_IP1

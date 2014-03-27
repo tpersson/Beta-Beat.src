@@ -2383,7 +2383,7 @@ class _InputData(object):
         ### check if dispersion exist
         if self.__try_to_load_dispersion_files():
             self.has_dispersion = True
-            print "Dispersion files OK", self.filedx.DX[0], self.filedx.NAME[0]
+            print "Dispersion files OK", self.dispersion_x.DX[0], self.dispersion_x.NAME[0]
         else:
             self.has_dispersion = False
             print "No dispersion files... will continue without taking into account dispersion"

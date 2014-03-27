@@ -23,7 +23,7 @@ import pstats
 
 _SHORT_RUN = False  # If True, SBS will only run on first dir
 _NO_VALID_RUN = True  # If True, will not run valid SBS except if no valid output files are available
-_SHOW_SLOWEST_CALLS = True  # If True, will show a list of the most time consuming calls in the script
+_SHOW_SLOWEST_CALLS = False  # If True, will show a list of the most time consuming calls in the script
 
 _TestOutput__ARGUMENTS_FILE_NAME = "arguments.txt"  # This file is located in the input run dirs. Stores arguments for sbs
 
@@ -169,54 +169,36 @@ class TestOutput(unittest.TestCase):
     def _compare_dirs_with_ndiff(self, valid_dir, to_check_dir):
         # sbsalfax_IP2.out has additional columns and need therefore a special config file
         # The twiss files have the creation date and time in them, we need to ignore that line
-        files_to_config_files = {
-                                 "sbsalfax_IP2.out": self._get_special_cfg_file_for_alfax_IP2(),
-                                 "StartPoint.twiss": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.a-_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.a-.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.a+_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.a+.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.b-_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.b-.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.b+_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.b+.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.d-_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.d-.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.d+_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss.d+.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_IP2.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_IP2_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_IP2_cor.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_IP2_nom_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_IP2_play_back.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_c_max.dat": self._get_special_cfg_file_for_twiss(),
-                                 "twiss_c_min.dat": self._get_special_cfg_file_for_twiss()
+        # The MAD-X files have some absolute routes that have to be ignored
+        regex_to_config_files = {
+                                 '^sbsalfax_IP2.out$': self._get_special_cfg_file_for_alfax_IP2(),
+                                 '.*\.twiss$': self._get_special_cfg_file_for_twiss(),
+                                 '.*\.dat$': self._get_special_cfg_file_for_twiss(),
+                                 '.*\.madx$': self._get_special_cfg_file_for_madx(),
                                  }
         self.assertTrue(
-                        Utilities.ndiff.compare_dirs_with_files_matching_regex_list(valid_dir,
-                                                                                    to_check_dir,
-                                                                                    None,
-                                                                                    files_to_config_files),
+                        Utilities.ndiff.compare_dirs_with_cfg_regex_files(valid_dir,
+                                                                          to_check_dir,
+                                                                          None,
+                                                                          regex_to_config_files,
+                                                                          self._get_master_config_file()),
                         "Directories not equal: " + valid_dir + " and " + to_check_dir
                         )
-        Utilities.iotools.delete_item(files_to_config_files["sbsalfax_IP2.out"])
-        Utilities.iotools.delete_item(files_to_config_files["StartPoint.twiss"])
+
+    def _get_master_config_file(self):
+        path_to_cfg = os.path.join(self.path_to_input, "general_ndiff_config.cfg")
+        return path_to_cfg
 
     def _get_special_cfg_file_for_alfax_IP2(self):
-        cfg_str = "2-$ 0-8 any abs=1e-9 rel=1e-9 "
-        path_to_cfg = self.path_to_input + "sbsalfax_IP2.out.cfg"
-        file_cfg = open(path_to_cfg, 'w')
-        print >> file_cfg, cfg_str
-        file_cfg.close()
+        path_to_cfg = os.path.join(self.path_to_input, "sbsalfax_IP2.out.cfg")
         return path_to_cfg
 
     def _get_special_cfg_file_for_twiss(self):
-        cfg_str = "44 * skip\r\n"
-        cfg_str += "45 * skip "
-        path_to_cfg = self.path_to_input + "StartPoint.twiss.cfg"
-        file_cfg = open(path_to_cfg, 'w')
-        print >> file_cfg, cfg_str
-        file_cfg.close()
+        path_to_cfg = os.path.join(self.path_to_input, "StartPoint.twiss.cfg")
+        return path_to_cfg
+
+    def _get_special_cfg_file_for_madx(self):
+        path_to_cfg = os.path.join(self.path_to_input, "madx_files.cfg")
         return path_to_cfg
 
     def _break_after_first_run(self):

@@ -30,7 +30,6 @@ DEFAULT_CFG = "default.cfg"
 IGNORE_TFS_HEADER_CFG = "ignore_tfs_header.cfg"
 
 
-
 def compare_dirs_with_files_matching_regex_list(dir1, dir2, regex_list=None, file_to_config_file_dict=None, master_config_file="", options_dict=None):
     """
     Compares also subdirectories recursively
@@ -77,6 +76,48 @@ def compare_dirs_with_files_matching_regex_list(dir1, dir2, regex_list=None, fil
                         return False
     return True
 
+
+def compare_dirs_with_cfg_regex_files(dir1, dir2, regex_list=None, file_to_config_file_dict=None, master_config_file="", options_dict=None):
+    """
+    The same method as compare_dirs_with_files_matching_regex_list(...) but the configuration files dictionary uses
+    regular expresions. Every file name matching the regular expresion will use the configuration file defined.
+    """
+    if Utilities.iotools.no_dirs_exist(dir1, dir2):
+        print >> sys.stderr, dir1, "or(and)", dir2, "do(es) not exist."
+        return False
+    if regex_list is None:
+        regex_list = []
+    if file_to_config_file_dict is None:
+        file_to_config_file_dict = {}
+
+    dir1_items = sorted(os.listdir(dir1))
+
+    for item in dir1_items:
+        item1 = os.path.join(dir1, item)
+        item2 = os.path.join(dir2, item)
+        if os.path.isdir(item1):
+            if not compare_dirs_with_files_matching_regex_list(item1, item2, regex_list, file_to_config_file_dict, master_config_file, options_dict):
+                return False
+        else:
+            if empty_list_or_str_matches_regex_list(item1, regex_list):
+                config_file = search_for_matching_cfg_file(file_to_config_file_dict, item)
+                if not config_file is None:
+                    if not compare_files(item1, item2, config_file, options_dict):
+                        return False
+                else:
+                    if not compare_files(item1, item2, master_config_file, options_dict):
+                        return False
+    return True
+
+
+def search_for_matching_cfg_file(file_to_config_file_dict, file_name):
+    for regex, cfg_file in file_to_config_file_dict.iteritems():
+        match = re.match(regex, file_name)
+        if not match is None:
+            return cfg_file
+    return None
+
+
 def empty_list_or_str_matches_regex_list(file_str, regex_list):
     if 0 == len(regex_list):
         return True
@@ -86,13 +127,15 @@ def empty_list_or_str_matches_regex_list(file_str, regex_list):
             return True
     return False
 
+
 def compare_files_and_ignore_whitespace(file_a, file_b):
     """
     Returns true, if files are equal with the default config. Whitespace will not be compared.
     Otherwise false, and output from ndiff will be printed.
     """
-    ignore_whitespace_option = {"--blank":""}
+    ignore_whitespace_option = {"--blank": ""}
     return compare_files(file_a, file_b, options_dict=ignore_whitespace_option)
+
 
 def compare_tfs_files_and_ignore_header(file_a, file_b):
     """
@@ -100,12 +143,12 @@ def compare_tfs_files_and_ignore_header(file_a, file_b):
     Otherwise false, and output from ndiff will be printed.
     """
     tfs_ignore_header_cfg = os.path.join(get_path_to_root_of_ndiff(), IGNORE_TFS_HEADER_CFG)
-    ignore_whitespace_option = {"--blank":""}
+    ignore_whitespace_option = {"--blank": ""}
 
     return compare_files(file_a, file_b, tfs_ignore_header_cfg, ignore_whitespace_option)
 
 
-def compare_files(file_a, file_b, config_file="", options_dict=None ):
+def compare_files(file_a, file_b, config_file="", options_dict=None):
     """
     Returns true, if files are equal based on the given config file.
     Otherwise false, and output from ndiff will be printed.
@@ -121,7 +164,7 @@ def compare_files(file_a, file_b, config_file="", options_dict=None ):
         return False
 
 
-def run_ndiff(file_a, file_b, config_file="", options_dict=None ):
+def run_ndiff(file_a, file_b, config_file="", options_dict=None):
     """
     Runs ndiff in a new subprocess to compare given files (a and b) with the config_file and the
     options_dict.
@@ -154,9 +197,7 @@ def run_ndiff(file_a, file_b, config_file="", options_dict=None ):
     (std_stream, err_stream) = process.communicate()
     exit_code = process.returncode
 
-    return (exit_code, std_stream, err_stream, " ".join(call_command) )
-
-
+    return (exit_code, std_stream, err_stream, " ".join(call_command))
 
 
 def __parse_options_dict(options_dict):
@@ -180,11 +221,11 @@ def get_os_dependent_path_to_ndiff():
     path_to_ndiff_root = get_path_to_root_of_ndiff()
 
     if "posix" == os.name:
-        tail = os.path.join("linux","ndiff-linux64")
+        tail = os.path.join("linux", "ndiff-linux64")
     elif "nt" == os.name:
-        tail = os.path.join("windows","ndiff-win32.exe")
+        tail = os.path.join("windows", "ndiff-win32.exe")
     else:
-        raise OSError("ndiff only available for Linux and Windows. Your OS: "+os.name)
+        raise OSError("ndiff only available for Linux and Windows. Your OS: " + os.name)
 
     return os.path.join(path_to_ndiff_root, tail)
 
