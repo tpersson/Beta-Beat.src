@@ -8,8 +8,15 @@
 *_linx
 *_liny
 db
+db5
+ats
+ds
 \#*\#
 *.bak
 *.orig
 source_2011
 TestFullResp
+GetLLM/afs
+.gitignore
+Python_Classes4MAD
+output.txt
