@@ -445,42 +445,83 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
     bn5 = str.upper(commonbpms[(i + 4) % len(commonbpms)][1])
     bn6 = str.upper(commonbpms[(i + 5) % len(commonbpms)][1])
     bn7 = str.upper(commonbpms[(i + 6) % len(commonbpms)][1])
+
+    if plane=='H':
+        p4 = 0
+        for i in [bn1, bn2, bn3]:
+            p4 = p4 + 1/6. * phase["".join([plane, i, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[i]])
+        for i in [bn5, bn6, bn7]:
+            p4 = p4 + 1/6. * phase["".join([plane, bn4, i])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[i]])
+        p4 = min([phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn5]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn6]]), phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn7]])])
+        p1 = phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn1]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+        p2 = phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn2]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+        p3 = phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn3]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+        p5 = phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn5]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+        p6 = phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+        p7 = phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn7]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
+
+    if plane=='V':
+        p4 = 0
+        for i in [bn1, bn2, bn3]:
+            p4 = p4 + 1/6. * phase["".join([plane, i, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[i]])
+        for i in [bn5, bn6, bn7]:
+            p4 = p4 + 1/6. * phase["".join([plane, bn4, i])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[i]])
+        p4 = min([phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn5]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn6]]), phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn7]])])
+        p1 = phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn1]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        p2 = phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn2]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        p3 = phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn3]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        p5 = phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn5]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        p6 = phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        p7 = phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn7]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+
+    M = (2*np.pi)**2 * np.matrix([[phase["".join([plane, bn4, bn5])][1]**2, p4**2, p4**2, p4**2, p4**2, p4**2],
+                                  [p4**2, phase["".join([plane, bn4, bn6])][1]**2, p4**2, p4**2, p4**2, p4**2],
+                                  [p4**2, p4**2, phase["".join([plane, bn4, bn7])][1]**2, p4**2, p4**2, p4**2],
+                                  [p4**2, p4**2, p4**2, phase["".join([plane, bn3, bn4])][1]**2, p4**2, p4**2],
+                                  [p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn2, bn4])][1]**2, p4**2],
+                                  [p4**2, p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn1, bn4])][1]**2]])
+    # M = (2*np.pi)**2 * np.matrix([[p4**2+p5**2, p4**2, p4**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, p4**2+p6**2, p4**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, p4**2+p7**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, p4**2+p3**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, p4**2, p4**2+p2**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, p4**2, p4**2, p4**2+p1**2]])
     candidates = []
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_right(bn1, bn2, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_right(bn1, bn3, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_right(bn2, bn3, bn4, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn1, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn2, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn3, bn4, bn5, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn1, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn2, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn3, bn4, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn1, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn2, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_mid(bn3, bn4, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_left(bn4, bn5, bn6, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_left(bn4, bn5, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    tbet, tbetstd, talf, talfstd = BetaFromPhase_BPM_left(bn4, bn6, bn7, MADTwiss, phase, plane)
-    candidates.append([tbetstd, tbet, talfstd, talf])
-    sort_cand = sorted(candidates)
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn1, bn2, bn4, MADTwiss, phase, plane, p1, p2, p4)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn2, [0, 0, 0, 0, t2, t1]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn1, bn3, bn4, MADTwiss, phase, plane, p1, p3, p4)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn3, [0, 0, 0, t2, 0, t1]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn2, bn3, bn4, MADTwiss, phase, plane, p2, p3, p4)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn3, [0, 0, 0, t2, t1, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn5, MADTwiss, phase, plane, p1, p4, p5)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn5, [t2, 0, 0, 0, 0, t1]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn5, MADTwiss, phase, plane, p2, p4, p5)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn5, [t2, 0, 0, 0, t1, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn5, MADTwiss, phase, plane, p3, p4, p5)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn5, [t2, 0, 0, t1, 0, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn6, MADTwiss, phase, plane, p1, p4, p6)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn6, [0, t2, 0, 0, 0, t1]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn6, MADTwiss, phase, plane, p2, p4, p6)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn6, [0, t2, 0, 0, t1, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn6, MADTwiss, phase, plane, p3, p4, p6)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn6, [0, t2, 0, t1, 0, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn7, MADTwiss, phase, plane, p1, p4, p7)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn7, [0, 0, t2, 0, 0, t1]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn7, MADTwiss, phase, plane, p2, p4, p7)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn7, [0, 0, t2, 0, t1, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn7, MADTwiss, phase, plane, p3, p4, p7)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn7, [0, 0, t2, t1, 0, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn5, bn6, MADTwiss, phase, plane, p4, p5, p6)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn6, [t1, t2, 0, 0, 0, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn5, bn7, MADTwiss, phase, plane, p4, p5, p7)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn7, [t1, 0, t2, 0, 0, 0]])
+    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn6, bn7, MADTwiss, phase, plane, p4, p6, p7)
+    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn6, bn7, [0, t1, t2, 0, 0, 0]])
+    sort_cand = sorted(candidates, key=lambda x: x[4])
     if sort_cand[0][0] > 0 and  not use_only_three_bpms_for_beta_from_phase:
-        return sort_cand[0], sort_cand[1], sort_cand[2], bn4
+        return sort_cand[0], sort_cand[1], sort_cand[2], bn4, M
     else:
-        return candidates[2], candidates[5], candidates[12], bn4
+        return candidates[2], candidates[5], candidates[12], bn4, M
 
 
 def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for_beta_from_phase):
@@ -525,7 +566,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     delbeta = []
     for i in range(0, len(commonbpms)):
 
-        alfa_beta_b1, alfa_beta_b2, alfa_beta_b3, probed_bpm_name = get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase)
+        alfa_beta_b1, alfa_beta_b2, alfa_beta_b3, probed_bpm_name, M = get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase)
 
         beti = (alfa_beta_b1[1] + alfa_beta_b2[1] + alfa_beta_b3[1]) / 3.
         alfi = (alfa_beta_b1[3] + alfa_beta_b2[3] + alfa_beta_b3[3]) / 3.
@@ -533,11 +574,46 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         betstd = math.sqrt(alfa_beta_b1[0]**2 + alfa_beta_b2[0]**2 + alfa_beta_b3[0]**2)/math.sqrt(3.)
         alfstd = math.sqrt(alfa_beta_b1[2]**2 + alfa_beta_b2[2]**2 + alfa_beta_b3[2]**2)/math.sqrt(3.)
 
-
+        T = np.transpose(np.matrix([alfa_beta_b1[7], alfa_beta_b2[7], alfa_beta_b3[7]]))
+        V1 = M * T
+        V2 = np.transpose(T) * V1
+        # for i in range(3):
+        #     for j in range(3):
+        #         if i != j:
+        #             V2[i, j] = 0
         try:
-            beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/3.-beti**2.)
-        except ValueError:
-            beterr = 0
+            V = np.linalg.pinv(V2)#V2.I
+            if probed_bpm_name == 'BPMYB.5R8.B1':
+                print 'M', M
+                print 'V', V2
+                print 'v-1', V
+        except:
+            V = np.zeros((3, 3))
+        if probed_bpm_name == 'BPMYB.5R8.B1':
+            print 'betst', betstd
+            print 'new', np.sqrt(V2.item(0,0)+V2.item(1,1)+V2.item(2,2)) / np.sqrt(3)
+            print w[0], alfa_beta_b1[1]
+        w = [0, 0, 0]
+        V_row_sum = V.sum(axis=1, dtype='float')
+        V_sum = V.sum(dtype='float')
+        for i in range(len(w)):
+            w[i] = V_row_sum[i] / V_sum
+        if probed_bpm_name == 'BPMYB.5R8.B1':
+            print 'weights, <alues:'
+            print w[0], alfa_beta_b1[1]
+            print w[1], alfa_beta_b2[1]
+            print w[2], alfa_beta_b3[1]
+        alfi = float(w[0] * alfa_beta_b1[1] + w[1] * alfa_beta_b2[1] + w[2] * alfa_beta_b3[1])
+        beterr = 0
+        for i in range(3):
+            for j in range(3):
+                beterr = beterr + w[i]*w[j]*V2.item(i,j)
+        beterr = np.sqrt(float(beterr))
+# TODO: adjust output variables
+        # try:
+        #     beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/3.-beti**2.)
+        # except ValueError:
+        #     beterr = 0
 
         try:
             alferr = math.sqrt((alfa_beta_b1[3]**2 + alfa_beta_b2[3]**2 + alfa_beta_b3[3]**2)/3.-alfi**2.)
@@ -671,7 +747,7 @@ def _get_free_beta(modelfree, modelac, betal, rmsbb, alfal, bpms, plane):  # to 
     return betan, rmsbb, alfan, bpms
 
 
-def BetaFromPhase_BPM_left(bn1, bn2, bn3, MADTwiss, phase, plane):
+def BetaFromPhase_BPM_left(bn1, bn2, bn3, MADTwiss, phase, plane,p1,p2,p3):
     '''
     Calculates the beta/alfa function and their errors using the
     phase advance between three BPMs for the case that the probed BPM is left of the other two BPMs
@@ -734,6 +810,13 @@ def BetaFromPhase_BPM_left(bn1, bn2, bn3, MADTwiss, phase, plane):
     betstd=betstd+(2*np.pi*phase["".join([plane,bn1,bn3])][1]/sin(ph2pi13)**2)**2
     betstd=math.sqrt(betstd)/abs(denom)
 
+    mdlerr=        (2*np.pi*0.001/sin(phmdl12)**2)**2
+    mdlerr=mdlerr+(2*np.pi*0.001/sin(phmdl13)**2)**2
+    mdlerr=math.sqrt(mdlerr)/abs(denom)    
+
+    term1 = 1/sin(phmdl12)**2/denom
+    term2 = -1/sin(phmdl13)**2/denom
+
     denom=M12/M11-N12/N11+1e-16
     numer=-M12/M11/tan(ph2pi12)+N12/N11/tan(ph2pi13)
     alf=numer/denom
@@ -742,9 +825,9 @@ def BetaFromPhase_BPM_left(bn1, bn2, bn3, MADTwiss, phase, plane):
     alfstd=alfstd+(N12/N11*2*np.pi*phase["".join([plane,bn1,bn3])][1]/sin(ph2pi13)**2)**2
     alfstd=math.sqrt(alfstd)/denom
 
-    return bet, betstd, alf, alfstd
+    return bet, betstd, alf, alfstd, mdlerr, term1, term2
 
-def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane):
+def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane,p1,p2,p3):
     '''
     Calculates the beta/alfa function and their errors using the
     phase advance between three BPMs for the case that the probed BPM is between the other two BPMs
@@ -807,6 +890,13 @@ def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane):
     betstd=betstd+(2*np.pi*phase["".join([plane,bn2,bn3])][1]/sin(ph2pi23)**2)**2
     betstd=math.sqrt(betstd)/abs(denom)
 
+    mdlerr=        (2*np.pi*0.001/sin(phmdl12)**2)**2
+    mdlerr=mdlerr+(2*np.pi*0.001/sin(phmdl23)**2)**2
+    mdlerr=math.sqrt(mdlerr)/abs(denom)
+
+    term2 = 1/sin(phmdl23)**2/denom  #sign
+    term1 = -1/sin(phmdl12)**2/denom  #sign
+
     denom=M12/M22+N12/N11+1e-16
     numer=M12/M22/tan(ph2pi12)-N12/N11/tan(ph2pi23)
     alf=numer/denom
@@ -815,9 +905,9 @@ def BetaFromPhase_BPM_mid(bn1,bn2,bn3,MADTwiss,phase,plane):
     alfstd=alfstd+(N12/N11*2*np.pi*phase["".join([plane,bn2,bn3])][1]/sin(ph2pi23)**2)**2
     alfstd=math.sqrt(alfstd)/abs(denom)
 
-    return bet, betstd, alf, alfstd
+    return bet, betstd, alf, alfstd, mdlerr, term1, term2
 
-def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane):
+def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane,p1,p2,p3):
     '''
     Calculates the beta/alfa function and their errors using the
     phase advance between three BPMs for the case that the probed BPM is right the other two BPMs
@@ -880,6 +970,13 @@ def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane):
     betstd=betstd+(2*np.pi*phase["".join([plane,bn1,bn3])][1]/sin(ph2pi13)**2)**2
     betstd=math.sqrt(betstd)/abs(denom)
 
+    mdlerr=        (2*np.pi*0.001/sin(phmdl23)**2)**2
+    mdlerr=mdlerr+(2*np.pi*0.001/sin(phmdl13)**2)**2
+    mdlerr=math.sqrt(mdlerr)/abs(denom)
+
+    term2 = -1/sin(phmdl23)**2/denom  #sign
+    term1 = 1/sin(phmdl13)**2/denom  #sign
+
     denom=M12/M22-N12/N22+1e-16
     numer=M12/M22/tan(ph2pi23)-N12/N22/tan(ph2pi13)
     alf=numer/denom
@@ -889,7 +986,7 @@ def BetaFromPhase_BPM_right(bn1,bn2,bn3,MADTwiss,phase,plane):
     alfstd=math.sqrt(alfstd)/abs(denom)
 
 
-    return bet, betstd, alf, alfstd
+    return bet, betstd, alf, alfstd, mdlerr, term1, term2
 
 
 
