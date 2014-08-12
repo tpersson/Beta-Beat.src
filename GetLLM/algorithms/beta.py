@@ -585,27 +585,15 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         #             V2[i, j] = 0
         try:
             V = np.linalg.pinv(V2)#V2.I
-            if probed_bpm_name == 'BPMYB.5R8.B1':
-                print 'M', M
-                print 'V', V2
-                print 'v-1', V
         except:
             V = np.zeros((3, 3))
-        if probed_bpm_name == 'BPMYB.5R8.B1':
-            print 'betst', betstd
-            print 'new', np.sqrt(V2.item(0,0)+V2.item(1,1)+V2.item(2,2)) / np.sqrt(3)
-            print w[0], alfa_beta_b1[1]
+
         w = [0, 0, 0]
         V_row_sum = V.sum(axis=1, dtype='float')
         V_sum = V.sum(dtype='float')
         for i in range(len(w)):
             w[i] = V_row_sum[i] / V_sum
-        if probed_bpm_name == 'BPMYB.5R8.B1':
-            print 'weights, <alues:'
-            print w[0], alfa_beta_b1[1]
-            print w[1], alfa_beta_b2[1]
-            print w[2], alfa_beta_b3[1]
-        alfi = float(w[0] * alfa_beta_b1[1] + w[1] * alfa_beta_b2[1] + w[2] * alfa_beta_b3[1])
+
         betstd = 0
         for i in range(3):
             for j in range(3):
