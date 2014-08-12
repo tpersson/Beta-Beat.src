@@ -21,6 +21,7 @@ import numpy as np
 
 import Utilities.bpm
 import compensate_ac_effect
+from scipy.special import erfinv
 
 
 DEBUG = sys.flags.debug # True with python option -d! ("python -d GetLLM.py...") (vimaier)
@@ -389,6 +390,104 @@ def _phi_last_and_last_but_one(phi, ftune):
         phi -= 1
     return phi
 
+def qnorm(probability):
+    """
+    A reimplementation of R's qnorm() function.
+    
+    This function calculates the quantile function of the normal
+    distributition.
+    (http://en.wikipedia.org/wiki/Normal_distribution#Quantile_function)
+    
+    Required is the erfinv() function, the inverse error function.
+    (http://en.wikipedia.org/wiki/Error_function#Inverse_function)
+    """
+    if probability > 1 or probability <= 0:
+        raise BaseException # TODO: raise a standard/helpful error
+    else:
+        return np.sqrt(2) * erfinv(2*probability - 1)
+
+def qt(probability, degrees_of_freedom):
+    """
+    A reimplementation of R's qt() function.
+    
+    This function calculates the quantile function of the student's t
+    distribution.
+    (http://en.wikipedia.org/wiki/Quantile_function#The_Student.27s_t-distribution)
+    
+    This algorithm has been taken (line-by-line) from Hill, G. W. (1970)
+    Algorithm 396: Student's t-quantiles. Communications of the ACM, 
+    13(10), 619-620.
+    
+    Currently unimplemented are the improvements to Algorithm 396 from
+    Hill, G. W. (1981) Remark on Algorithm 396, ACM Transactions on 
+    Mathematical Software, 7, 250-1.
+    """
+    n = degrees_of_freedom
+    P = probability
+    t = 0
+    if (n < 1 or P > 1.0 or P <= 0.0 ):
+        raise BaseException #TODO: raise a standard/helpful error
+    elif (n == 2):
+        t = np.sqrt(2.0/(P*(2.0-P)) - 2.0)
+    elif (n == 1):
+        P = P * np.pi/2
+        t = np.cos(P)/np.sin(P)
+    else:
+        a = 1.0/(n-0.5)
+        b = 48.0/(a**2.0)
+        c = (((20700.0*a)/b - 98.0)*a - 16.0)*a + 96.36
+        d = ((94.5/(b+c) - 3.0)/b + 1.0)*np.sqrt((a*np.pi)/2.0)*float(n)
+        x = d*P
+        y = x**(2.0/float(n))
+    
+        if (y > 0.05 + a):
+            x = qnorm(P*0.5)
+            y = x**2.0
+            
+            if (n < 5):
+                c = c + 0.3*(float(n)-4.5)*(x+0.6)
+
+            #c = (((0.05*d*x-5.0)*x-7.0)*x-2.0)*x+b+c
+            c1 = (0.05*d*x) - 5.0
+            c2 = c1*x - 7.0
+            c3 = c2*x - 2.0
+            c4 = c3*x + b + c
+            c = c4
+            #y = (((((0.4*y+6.3)*y+36.0)*y+94.5)/c-y-3.0)/b+1.0)*x
+            y1 = (0.4*y+6.3)*y + 36.0
+            y2 = y1*y + 94.5
+            y3 = y2/c - y - 3.0
+            y4 = y3/b + 1.0
+            y5 = y4*x
+            y = y5
+            
+            y = a*(y**2.0)
+            
+            if (y > 0.002):
+                y = np.exp(y) - 1.0
+            else:
+                y = 0.5*(y**2.0) + y
+
+        else:
+            #y = ((1.0/(((float(n)+6.0)/(float(n)*y)-0.089*d-0.822)
+            #*(float(n)+2.0)*3.0)+0.5/(float(n)+4.0))*y-1.0)*(float(n)+1.0)
+            #/(float(n)+2.0)+1.0/y
+            y1 = float(n)+6.0
+            y2 = y1/(float(n)*y)
+            y3 = y2 - 0.089*d - 0.822
+            y4 = y3 * (float(n)+2.0) * 3.0
+            y5 = 1.0 / y4
+            y6 = y5 + 0.5/(float(n)+4.0)
+            y7 = y6*y - 1.0
+            y8 = y7 * (float(n)+1.0) 
+            y9 = y8 / (float(n)+2.0) 
+            y10 = y9 + 1.0/y
+            y= y10
+        
+        t = np.sqrt(float(n)*y)
+    
+    return t
+
 def calc_phase_mean(phase0, norm):
     ''' phases must be in [0,1) or [0,2*pi), norm = 1 or 2*pi '''
     phase0 = np.array(phase0)%norm
@@ -424,8 +523,11 @@ def calc_phase_std(phase0, norm):
     phase1std_sq = np.sum((phase1-phase1ave)**2)
 
     min_phase_std = min(phase0std_sq, phase1std_sq)
-    phase_std = math.sqrt(min_phase_std/len(phase0))
-
+    if len(phase0) > 1:
+        phase_std = math.sqrt(min_phase_std/(len(phase0)-1))
+        phase_std = phase_std * qt(0.317, len(phase0)-1)
+    else:
+        phase_std = 0
     return phase_std
 
 def _get_phases_total(mad_twiss, src_files, tune, plane, beam_direction, accel, lhc_phase):
