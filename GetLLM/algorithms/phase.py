@@ -390,21 +390,23 @@ def _phi_last_and_last_but_one(phi, ftune):
         phi -= 1
     return phi
 
+
 def qnorm(probability):
     """
     A reimplementation of R's qnorm() function.
-    
+
     This function calculates the quantile function of the normal
     distributition.
     (http://en.wikipedia.org/wiki/Normal_distribution#Quantile_function)
-    
+
     Required is the erfinv() function, the inverse error function.
     (http://en.wikipedia.org/wiki/Error_function#Inverse_function)
     """
     if probability > 1 or probability <= 0:
-        raise BaseException # TODO: raise a standard/helpful error
+        raise ValueError("Probability has to be between 0 and 1")
     else:
-        return np.sqrt(2) * erfinv(2*probability - 1)
+        return np.sqrt(2) * erfinv(2 * probability - 1)
+
 
 def qt(probability, degrees_of_freedom):
     """
