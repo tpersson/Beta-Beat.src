@@ -50,7 +50,8 @@ class BetaData(object):
         self.y_ratio_f = None  # beta x ratio free
 
 
-def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad_ac, files_dict, use_only_three_bpms_for_beta_from_phase):
+def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad_ac, mad_best_knowledge,
+                              mad_ac_best_knowledge, files_dict, use_only_three_bpms_for_beta_from_phase):
     '''
     Calculates beta and fills the following TfsFiles:
         getbetax.out        getbetax_free.out        getbetax_free2.out
@@ -71,7 +72,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
     print 'Calculating beta'
     #---- H plane
     if twiss_d.has_zero_dpp_x():
-        [beta_d.x_phase, rmsbbx, alfax, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_x, phase_d.ph_x, 'H', use_only_three_bpms_for_beta_from_phase)
+        [beta_d.x_phase, rmsbbx, alfax, bpms] = beta_from_phase(mad_ac_best_knowledge, twiss_d.zero_dpp_x, phase_d.ph_x, 'H', use_only_three_bpms_for_beta_from_phase)
         beta_d.x_phase['DPP'] = 0
         tfs_file = files_dict['getbetax.out']
         tfs_file.add_float_descriptor("Q1", tune_d.q1)
@@ -89,7 +90,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
         if getllm_d.with_ac_calc:
             #-- from eq
             try:
-                [beta_d.x_phase_f, rmsbbxf, alfaxf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_x, phase_d.x_f, 'H', use_only_three_bpms_for_beta_from_phase)
+                [beta_d.x_phase_f, rmsbbxf, alfaxf, bpmsf] = beta_from_phase(mad_best_knowledge, twiss_d.zero_dpp_x, phase_d.x_f, 'H', use_only_three_bpms_for_beta_from_phase)
                 tfs_file = files_dict['getbetax_free.out']
                 tfs_file.add_float_descriptor("Q1", tune_d.q1f)
                 tfs_file.add_float_descriptor("Q2", tune_d.q2f)
@@ -120,7 +121,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
 
     #---- V plane
     if twiss_d.has_zero_dpp_y():
-        [beta_d.y_phase, rmsbby, alfay, bpms] = beta_from_phase(mad_ac, twiss_d.zero_dpp_y, phase_d.ph_y, 'V', use_only_three_bpms_for_beta_from_phase)
+        [beta_d.y_phase, rmsbby, alfay, bpms] = beta_from_phase(mad_ac_best_knowledge, twiss_d.zero_dpp_y, phase_d.ph_y, 'V', use_only_three_bpms_for_beta_from_phase)
         beta_d.y_phase['DPP'] = 0
         tfs_file = files_dict['getbetay.out']
         tfs_file.add_float_descriptor("Q1", tune_d.q1)
@@ -138,7 +139,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad
         if getllm_d.with_ac_calc:
             #-- from eq
             try:
-                [beta_d.y_phase_f, rmsbbyf, alfayf, bpmsf] = beta_from_phase(mad_twiss, twiss_d.zero_dpp_y, phase_d.y_f, 'V', use_only_three_bpms_for_beta_from_phase)
+                [beta_d.y_phase_f, rmsbbyf, alfayf, bpmsf] = beta_from_phase(mad_best_knowledge, twiss_d.zero_dpp_y, phase_d.y_f, 'V', use_only_three_bpms_for_beta_from_phase)
                 tfs_file = files_dict['getbetay_free.out']
                 tfs_file.add_float_descriptor("Q1", tune_d.q1f)
                 tfs_file.add_float_descriptor("Q2", tune_d.q2f)
@@ -553,6 +554,8 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     systematic_errors = None
     if os.path.isfile(systematics_error_path):
         systematic_errors = np.load(systematics_error_path)
+    elif not use_only_three_bpms_for_beta_from_phase:
+        print >> sys.stderr, "WARNING: Cannot find bet_deviations.npy file!"
 
     delbeta = []
     for i in range(0, len(commonbpms)):
@@ -563,84 +566,94 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         alfi = (alfa_beta_b1[3] + alfa_beta_b2[3] + alfa_beta_b3[3]) / 3.
 
         alfstd = math.sqrt(alfa_beta_b1[2]**2 + alfa_beta_b2[2]**2 + alfa_beta_b3[2]**2)/math.sqrt(3.)
-
-        T = np.transpose(np.matrix([alfa_beta_b1[7], alfa_beta_b2[7], alfa_beta_b3[7]]))
-        V1 = M * T
-        V2 = np.transpose(T) * V1
+        betstd = math.sqrt(alfa_beta_b1[0]**2 + alfa_beta_b2[0]**2 + alfa_beta_b3[0]**2)/math.sqrt(3.)
 
         try:
-            V = np.linalg.pinv(V2)  # V2.I
-        except:
-            V = np.zeros((3, 3))
-
-        w = [0, 0, 0]
-        V_row_sum = V.sum(axis=1, dtype='float')
-        V_sum = V.sum(dtype='float')
-        for i in range(len(w)):
-            w[i] = V_row_sum[i] / V_sum
-
-        betstd = 0
-        for i in range(3):
-            for j in range(3):
-                betstd = betstd + w[i] * w[j] * V2.item(i, j)
-        betstd = np.sqrt(float(betstd))
-
-        if systematic_errors:
-            e1 = 0
-            e2 = 0
-            e3 = 0
-            if plane == 'H':
-                if probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6] in systematic_errors[0]:
-                    e1 = systematic_errors[0][probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6]]
-                elif probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5] in systematic_errors[0]:
-                    e1 = systematic_errors[0][probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b1[5], alfa_beta_b1[6]
-                if probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6] in systematic_errors[0]:
-                    e2 = systematic_errors[0][probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6]]
-                elif probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5] in systematic_errors[0]:
-                    e2 = systematic_errors[0][probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b2[5], alfa_beta_b2[6]
-                if probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6] in systematic_errors[0]:
-                    e3 = systematic_errors[0][probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6]]
-                elif probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5] in systematic_errors[0]:
-                    e3 = systematic_errors[0][probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b3[5], alfa_beta_b3[6]
-            if plane == 'V':
-                if probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6] in systematic_errors[1]:
-                    e1 = systematic_errors[1][probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6]]
-                elif probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5] in systematic_errors[1]:
-                    e1 = systematic_errors[1][probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b1[5], alfa_beta_b1[6]
-                if probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6] in systematic_errors[1]:
-                    e2 = systematic_errors[1][probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6]]
-                elif probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5] in systematic_errors[1]:
-                    e2 = systematic_errors[1][probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b2[5], alfa_beta_b2[6]
-                if probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6] in systematic_errors[1]:
-                    e3 = systematic_errors[1][probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6]]
-                elif probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5] in systematic_errors[1]:
-                    e3 = systematic_errors[1][probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5]]
-                else:
-                    print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b3[5], alfa_beta_b3[6]
-            if e1 != 0 and e2 != 0 and e3 != 0:
-                beterr = float(np.sqrt((w[0]*e1*alfa_beta_b1[1])**2 + (w[1]*e2*alfa_beta_b2[1])**2 + (w[2]*e3*alfa_beta_b3[1])**2))
-            else:
-                beterr = DEFAULT_WRONG_BETA
-        else:
-            try:
-                beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/3.-beti**2.)
-            except ValueError:
-                beterr = DEFAULT_WRONG_BETA
+            beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/3.-beti**2.)
+        except ValueError:
+            beterr = 0
 
         try:
             alferr = math.sqrt((alfa_beta_b1[3]**2 + alfa_beta_b2[3]**2 + alfa_beta_b3[3]**2)/3.-alfi**2.)
         except ValueError:
             alferr = 0
+
+        if not use_only_three_bpms_for_beta_from_phase:
+        # Use the systematic error file to get the beta errors
+
+            T = np.transpose(np.matrix([alfa_beta_b1[7], alfa_beta_b2[7], alfa_beta_b3[7]]))
+            V1 = M * T
+            V2 = np.transpose(T) * V1
+
+            try:
+                V = np.linalg.pinv(V2)  # V2.I
+            except:
+                V = np.zeros((3, 3))
+
+            w = [0, 0, 0]
+            V_row_sum = V.sum(axis=1, dtype='float')
+            V_sum = V.sum(dtype='float')
+
+            betstd = 0
+            if V_sum != 0:
+                for i in range(len(w)):
+                    w[i] = V_row_sum[i] / V_sum
+
+                for i in range(3):
+                    for j in range(3):
+                        betstd = betstd + w[i] * w[j] * V2.item(i, j)
+                betstd = np.sqrt(float(betstd))
+            else:
+                betstd = DEFAULT_WRONG_BETA
+
+            if systematic_errors:
+                e1 = 0
+                e2 = 0
+                e3 = 0
+                if plane == 'H':
+                    if probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6] in systematic_errors[0]:
+                        e1 = systematic_errors[0][probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6]]
+                    elif probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5] in systematic_errors[0]:
+                        e1 = systematic_errors[0][probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b1[5], alfa_beta_b1[6]
+                    if probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6] in systematic_errors[0]:
+                        e2 = systematic_errors[0][probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6]]
+                    elif probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5] in systematic_errors[0]:
+                        e2 = systematic_errors[0][probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b2[5], alfa_beta_b2[6]
+                    if probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6] in systematic_errors[0]:
+                        e3 = systematic_errors[0][probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6]]
+                    elif probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5] in systematic_errors[0]:
+                        e3 = systematic_errors[0][probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b3[5], alfa_beta_b3[6]
+                if plane == 'V':
+                    if probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6] in systematic_errors[1]:
+                        e1 = systematic_errors[1][probed_bpm_name + alfa_beta_b1[5] + alfa_beta_b1[6]]
+                    elif probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5] in systematic_errors[1]:
+                        e1 = systematic_errors[1][probed_bpm_name + alfa_beta_b1[6] + alfa_beta_b1[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b1[5], alfa_beta_b1[6]
+                    if probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6] in systematic_errors[1]:
+                        e2 = systematic_errors[1][probed_bpm_name + alfa_beta_b2[5] + alfa_beta_b2[6]]
+                    elif probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5] in systematic_errors[1]:
+                        e2 = systematic_errors[1][probed_bpm_name + alfa_beta_b2[6] + alfa_beta_b2[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b2[5], alfa_beta_b2[6]
+                    if probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6] in systematic_errors[1]:
+                        e3 = systematic_errors[1][probed_bpm_name + alfa_beta_b3[5] + alfa_beta_b3[6]]
+                    elif probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5] in systematic_errors[1]:
+                        e3 = systematic_errors[1][probed_bpm_name + alfa_beta_b3[6] + alfa_beta_b3[5]]
+                    else:
+                        print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b3[5], alfa_beta_b3[6]
+                if e1 != 0 and e2 != 0 and e3 != 0:
+                    beterr = float(np.sqrt((w[0]*e1*alfa_beta_b1[1])**2 + (w[1]*e2*alfa_beta_b2[1])**2 + (w[2]*e3*alfa_beta_b3[1])**2))
+                else:
+                    beterr = DEFAULT_WRONG_BETA
+            else:
+                beterr = DEFAULT_WRONG_BETA
 
         beta[probed_bpm_name] = (beti, beterr, betstd)
         alfa[probed_bpm_name] = (alfi, alferr, alfstd)
