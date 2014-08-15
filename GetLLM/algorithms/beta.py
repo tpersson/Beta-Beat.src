@@ -550,10 +550,12 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     if 7 > len(commonbpms):
         print "beta_from_phase: Less than seven BPMs for plane", plane + ". Can not use optimised algorithm."
 
+    systematic_errors_found = False
     systematics_error_path = os.path.join(os.path.dirname(os.path.abspath(MADTwiss.filename)), "bet_deviations.npy")
     systematic_errors = None
     if os.path.isfile(systematics_error_path):
         systematic_errors = np.load(systematics_error_path)
+        systematic_errors_found = True
     elif not use_only_three_bpms_for_beta_from_phase:
         print >> sys.stderr, "WARNING: Cannot find bet_deviations.npy file!"
 
@@ -586,7 +588,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
             V2 = np.transpose(T) * V1
 
             try:
-                V = np.linalg.pinv(V2)  # V2.I
+                V = np.linalg.pinv(V2)
             except:
                 V = np.zeros((3, 3))
 
@@ -606,7 +608,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
             else:
                 betstd = DEFAULT_WRONG_BETA
 
-            if systematic_errors:
+            if systematic_errors_found:
                 e1 = 0
                 e2 = 0
                 e3 = 0
@@ -649,7 +651,10 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
                     else:
                         print 'Error, bpms for systematic error not found ->', probed_bpm_name, alfa_beta_b3[5], alfa_beta_b3[6]
                 if e1 != 0 and e2 != 0 and e3 != 0:
-                    beterr = float(np.sqrt((w[0]*e1*alfa_beta_b1[1])**2 + (w[1]*e2*alfa_beta_b2[1])**2 + (w[2]*e3*alfa_beta_b3[1])**2))
+                    if w[0] != 0 and w[1] != 0 and w[2] != 0:
+                        beterr = float(np.sqrt((w[0]*e1*alfa_beta_b1[1])**2 + (w[1]*e2*alfa_beta_b2[1])**2 + (w[2]*e3*alfa_beta_b3[1])**2))
+                    else:
+                        beterr = float((1/3.0)*np.sqrt((e1*alfa_beta_b1[1])**2 + (e2*alfa_beta_b2[1])**2 + (e3*alfa_beta_b3[1])**2))
                 else:
                     beterr = DEFAULT_WRONG_BETA
             else:
