@@ -601,6 +601,8 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
                 for i in range(len(w)):
                     w[i] = V_row_sum[i] / V_sum
 
+                beti = float(w[0] * alfa_beta_b1[1] + w[1] * alfa_beta_b2[1] + w[2] * alfa_beta_b3[1])
+
                 for i in range(3):
                     for j in range(3):
                         betstd = betstd + w[i] * w[j] * V2.item(i, j)
