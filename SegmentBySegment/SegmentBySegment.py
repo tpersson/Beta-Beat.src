@@ -1527,6 +1527,7 @@ def getAndWriteData(namename, phases, betah, betav, disph, dispv, couple, chroma
         fx.add_table_row([el[1], px.S[pxindx], exp, exp_mdl, px.STDPHX[pxindx], phase_error, mdl_play, t.S[tindx]])
     fx.write_to_file()
 
+
     #-vertical
     filey = open(path+"sbsbetay_"+namename+".out", "w")
     fileya = open(path+"sbsalfay_"+namename+".out", "w")
@@ -1657,6 +1658,33 @@ def getAndWriteData(namename, phases, betah, betav, disph, dispv, couple, chroma
 
     filey.close()
     fileya.close()
+
+    py = twiss(options.path + '/getphasetoty' + method + '.out')
+
+    bpmsy = modelIntersectgetf(t, py)
+
+    bpmy1 = bpms[0][1]
+    if bpmy1 not in zip(*bpmsy)[1]:   # zip(*a) is like transpose of a list
+        print "Selected Start BPM in not in the measurement!"
+        print "Quiting SbS"
+        sys.exit()
+
+    fy = tfs_writer.TfsFileWriter.open(savepath + '/test_sbsphaseyt_' + namename + '.out')
+    fy.add_column_names(["NAME", "S", "PHASEY", "PHASEYT", "ERRORY", "PHSTDY", "PHASE_PLAY", "MODEL_S"])
+    fy.add_column_datatypes(["%s", "%le", "%le", "%le", "%le", "%le", "%le", "%le"])
+#TODO:
+    for el in bpmsy:
+        tindx = t.indx[el[1]]
+        pyindx = py.indx[el[1]]
+        mdl = (t.MUY[tindx] - t.MUY[t.indx[bpmy1]]) % 1
+        exp = (py.PHASEY[pyindx] - py.PHASEY[py.indx[bpmy1]]) % 1
+        exp_mdl = (exp - mdl) % 1
+        if exp_mdl > 0.5:
+            exp_mdl = exp_mdl - 1
+        mdl_play = -t.MUY[tindx] + tp.MUY[tindx]
+        phase_error = propagate_error_phase(err_beta_start, err_alfa_start, exp, beta_start, alfa_start)
+        fy.add_table_row([el[1], py.S[pyindx], exp, exp_mdl, py.STDPHY[pyindx], phase_error, mdl_play, t.S[tindx]])
+    fy.write_to_file()
 
     ##dispersion
     if len(disph) != 0:
