@@ -627,8 +627,8 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
             tune = np.average(tunem)
 
     for i in range(length_commonbpms): # To find the integer part of tune as well, the loop is up to the last monitor
-        bpms = [str.upper(commonbpms[j % length_commonbpms][1]) for j in range(i, i+7)] # seven consecutive monitors
-        p_i = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]} # dict for the six bpm pairs i.e. p_i[1] is for pair bpm[0], bpm[1]
+        bpms = [str.upper(commonbpms[j % length_commonbpms][1]) for j in range(i, i+11)] # seven consecutive monitors
+        p_i = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[]} # dict for the six bpm pairs i.e. p_i[1] is for pair bpm[0], bpm[1]
 
         for src_twiss in ListOfFiles:
             # Phase is in units of 2pi
@@ -667,9 +667,9 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
             p_std[bpm_pair] = calc_phase_std(p_i[bpm_pair], 1.)
             p_i[bpm_pair] = calc_phase_mean(p_i[bpm_pair], 1.)
 
-        if i >= length_commonbpms-6:
-            p_i[6] = _phi_last_and_last_but_one(p_i[6], tune)
-            for j in range(1,6):
+        if i >= length_commonbpms-10:
+            p_i[10] = _phi_last_and_last_but_one(p_i[10], tune)
+            for j in range(1,10):
                 if i >= length_commonbpms-j:
                     p_i[j] = _phi_last_and_last_but_one(p_i[j], tune)
 
@@ -681,7 +681,7 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
         for bpm_pair in p_i:
             p_mdl[bpm_pair] = twiss_column[mad_twiss.indx[bpms[bpm_pair]]] - twiss_column[mad_twiss.indx[bpms[0]]]
 
-        if i >= length_commonbpms-6:
+        if i >= length_commonbpms-10:
             if plane == 'H':
                 madtune = mad_twiss.Q1 % 1
             elif plane == 'V':
@@ -689,8 +689,8 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
             if madtune > .5:
                 madtune -= 1
 
-            p_mdl[6] = p_mdl[6] % 1
-            p_mdl[6] = _phi_last_and_last_but_one(p_mdl[6], madtune)
+            p_mdl[10] = p_mdl[10] % 1
+            p_mdl[10] = _phi_last_and_last_but_one(p_mdl[10], madtune)
             for j in range(1, len(p_i)): # iterate only over the first 5 bpm pairs
                 if i >= length_commonbpms-j:
                     p_mdl[j] = p_mdl[j] % 1

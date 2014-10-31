@@ -428,6 +428,8 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
     '''
 
     NUM_BPM_COMBOS = 1
+    RANGE = 11
+    probed_index = int((RANGE-1)/2.)
 
     if 7 > len(commonbpms):
         bn1 = str.upper(commonbpms[i % len(commonbpms)][1])
@@ -444,74 +446,139 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
         candidates.append([tbetstd, tbet, talfstd, talf])
         return candidates[0], candidates[1], candidates[2], bn3
 
-    bn1 = str.upper(commonbpms[i % len(commonbpms)][1])
-    bn2 = str.upper(commonbpms[(i + 1) % len(commonbpms)][1])
-    bn3 = str.upper(commonbpms[(i + 2) % len(commonbpms)][1])
-    bn4 = str.upper(commonbpms[(i + 3) % len(commonbpms)][1])
-    bn5 = str.upper(commonbpms[(i + 4) % len(commonbpms)][1])
-    bn6 = str.upper(commonbpms[(i + 5) % len(commonbpms)][1])
-    bn7 = str.upper(commonbpms[(i + 6) % len(commonbpms)][1])
-
+    bpm_name = {}
+    for n in range(RANGE):
+        bpm_name[n] = str.upper(commonbpms[(i + n) % len(commonbpms)][1])
+    # bn1 = str.upper(commonbpms[i % len(commonbpms)][1])
+    # bn2 = str.upper(commonbpms[(i + 1) % len(commonbpms)][1])
+    # bn3 = str.upper(commonbpms[(i + 2) % len(commonbpms)][1])
+    # bn4 = str.upper(commonbpms[(i + 3) % len(commonbpms)][1])
+    # bn5 = str.upper(commonbpms[(i + 4) % len(commonbpms)][1])
+    # bn6 = str.upper(commonbpms[(i + 5) % len(commonbpms)][1])
+    # bn7 = str.upper(commonbpms[(i + 6) % len(commonbpms)][1])
+    # bn8 = str.upper(commonbpms[(i + 7) % len(commonbpms)][1])
+    # bn9 = str.upper(commonbpms[(i + 8) % len(commonbpms)][1])
+    # bn10 = str.upper(commonbpms[(i + 9) % len(commonbpms)][1])
+    # bn11 = str.upper(commonbpms[(i + 10) % len(commonbpms)][1])
+    phase_err = {}
     if plane == 'H':
-        p4 = min([phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn5]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn6]]), phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn7]])])
-        p1 = phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn1]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-        p2 = phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn2]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-        p3 = phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn3]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-        p5 = phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn5]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-        p6 = phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-        p7 = phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn7]] / MADTwiss.BETX[MADTwiss.indx[bn4]])
-
+        for i in range(RANGE):
+            if i < probed_index:
+                phase_err[i] = phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]])
+            elif i > probed_index:
+                phase_err[i] = phase["".join([plane, bpm_name[probed_index], bpm_name[i]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]])
+        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index - 1)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index-1)])
     if plane == 'V':
-        p4 = min([phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn5]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn6]]), phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn4]] / MADTwiss.BETY[MADTwiss.indx[bn7]])])
-        p1 = phase["".join([plane, bn1, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn1]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
-        p2 = phase["".join([plane, bn2, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn2]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
-        p3 = phase["".join([plane, bn3, bn4])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn3]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
-        p5 = phase["".join([plane, bn4, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn5]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
-        p6 = phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
-        p7 = phase["".join([plane, bn4, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn7]] / MADTwiss.BETY[MADTwiss.indx[bn4]])
+        for i in range(RANGE):
+            if i < probed_index:
+                phase_err[i] = phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]])
+            if i > probed_index:
+                phase_err[i] = phase["".join([plane, bpm_name[probed_index], bpm_name[i]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]])
+        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index - 1)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index - 1)])
+    # if plane == 'H':
 
-    M = (2*np.pi)**2 * np.matrix([[phase["".join([plane, bn4, bn5])][1]**2, p4**2, p4**2, p4**2, p4**2, p4**2],
-                                  [p4**2, phase["".join([plane, bn4, bn6])][1]**2, p4**2, p4**2, p4**2, p4**2],
-                                  [p4**2, p4**2, phase["".join([plane, bn4, bn7])][1]**2, p4**2, p4**2, p4**2],
-                                  [p4**2, p4**2, p4**2, phase["".join([plane, bn3, bn4])][1]**2, p4**2, p4**2],
-                                  [p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn2, bn4])][1]**2, p4**2],
-                                  [p4**2, p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn1, bn4])][1]**2]])
+    #     p6 = min([phase["".join([plane, bn1, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn4]]), phase["".join([plane, bn5, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn5]]), phase["".join([plane, bn6, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn7]]), phase["".join([plane, bn6, bn8])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn8]]), phase["".join([plane, bn6, bn9])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn9]]), phase["".join([plane, bn6, bn10])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn10]]), phase["".join([plane, bn6, bn11])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn11]])])
+    #     p1 = phase["".join([plane, bn1, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn1]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p2 = phase["".join([plane, bn2, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn2]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p3 = phase["".join([plane, bn3, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn3]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p4 = phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn4]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p5 = phase["".join([plane, bn5, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn5]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p7 = phase["".join([plane, bn6, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn7]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p8 = phase["".join([plane, bn6, bn8])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn8]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p9 = phase["".join([plane, bn6, bn9])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn9]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p10 = phase["".join([plane, bn6, bn10])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn10]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+    #     p11 = phase["".join([plane, bn6, bn11])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn11]] / MADTwiss.BETX[MADTwiss.indx[bn6]])
+
+    # if plane == 'V':
+    #     p4 = min([phase["".join([plane, bn1, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn3]]), phase["".join([plane, bn6, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn5]]), phase["".join([plane, bn6, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn6]]), phase["".join([plane, bn6, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn7]])])
+    #     p1 = phase["".join([plane, bn1, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn1]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    #     p2 = phase["".join([plane, bn2, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn2]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    #     p3 = phase["".join([plane, bn3, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn3]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    #     p5 = phase["".join([plane, bn6, bn5])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn5]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    #     p6 = phase["".join([plane, bn6, bn6])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn6]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    #     p7 = phase["".join([plane, bn6, bn7])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bn7]] / MADTwiss.BETY[MADTwiss.indx[bn6]])
+    M = np.zeros([RANGE - 1, RANGE - 1])
+    for k in range(RANGE - 1):
+        for l in range(RANGE - 1):
+            if k == l and k < probed_index:
+                M[k][l] = phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + k + 1]])][1]**2
+            elif k == l and k >= probed_index:
+                M[k][l] = phase["".join([plane, bpm_name[RANGE - 2 - k], bpm_name[probed_index]])][1]**2
+            else:
+                M[k][l] = phase_err[probed_index]**2
+
+    # M = (2*np.pi)**2 * np.matrix([[phase["".join([plane, bn6, bn5])][1]**2, p4**2, p4**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, phase["".join([plane, bn4, bn6])][1]**2, p4**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, phase["".join([plane, bn4, bn7])][1]**2, p4**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, phase["".join([plane, bn3, bn4])][1]**2, p4**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn2, bn4])][1]**2, p4**2],
+    #                               [p4**2, p4**2, p4**2, p4**2, p4**2, phase["".join([plane, bn1, bn4])][1]**2]])
     candidates = []
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn1, bn2, bn4, MADTwiss, phase, plane, p1, p2, p4)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn2, [0, 0, 0, 0, t2, t1]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn1, bn3, bn4, MADTwiss, phase, plane, p1, p3, p4)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn3, [0, 0, 0, t2, 0, t1]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bn2, bn3, bn4, MADTwiss, phase, plane, p2, p3, p4)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn3, [0, 0, 0, t2, t1, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn5, MADTwiss, phase, plane, p1, p4, p5)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn5, [t2, 0, 0, 0, 0, t1]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn5, MADTwiss, phase, plane, p2, p4, p5)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn5, [t2, 0, 0, 0, t1, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn5, MADTwiss, phase, plane, p3, p4, p5)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn5, [t2, 0, 0, t1, 0, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn6, MADTwiss, phase, plane, p1, p4, p6)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn6, [0, t2, 0, 0, 0, t1]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn6, MADTwiss, phase, plane, p2, p4, p6)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn6, [0, t2, 0, 0, t1, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn6, MADTwiss, phase, plane, p3, p4, p6)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn6, [0, t2, 0, t1, 0, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn1, bn4, bn7, MADTwiss, phase, plane, p1, p4, p7)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn1, bn7, [0, 0, t2, 0, 0, t1]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn2, bn4, bn7, MADTwiss, phase, plane, p2, p4, p7)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn2, bn7, [0, 0, t2, 0, t1, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bn3, bn4, bn7, MADTwiss, phase, plane, p3, p4, p7)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn3, bn7, [0, 0, t2, t1, 0, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn5, bn6, MADTwiss, phase, plane, p4, p5, p6)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn6, [t1, t2, 0, 0, 0, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn5, bn7, MADTwiss, phase, plane, p4, p5, p7)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn5, bn7, [t1, 0, t2, 0, 0, 0]])
-    tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bn4, bn6, bn7, MADTwiss, phase, plane, p4, p6, p7)
-    candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bn6, bn7, [0, t1, t2, 0, 0, 0]])
+    left_bpm = range(probed_index)
+    right_bpm = range(probed_index + 1, RANGE)
+    left_combo = [[x, y] for x in left_bpm for y in left_bpm if x < y]
+    right_combo = [[x, y] for x in right_bpm for y in right_bpm if x < y]
+    mid_combo = [[x, y] for x in left_bpm for y in right_bpm]
+
+    for n in left_combo:
+        tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bpm_name[n[0]], bpm_name[n[1]], bpm_name[probed_index], MADTwiss, phase, plane, phase_err[n[0]], phase_err[n[1]], phase_err[probed_index])
+        t_matrix_row = [0] * (RANGE-1)
+        t_matrix_row[RANGE-2 - n[0]] = t1
+        t_matrix_row[RANGE-2 - n[1]] = t2
+        candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[n[0]], bpm_name[n[1]], t_matrix_row])
+ 
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bpm_name[0], bpm_name[1], bpm_name[probed_index], MADTwiss, phase, plane, phase_err[0], phase_err[1], phase_err[probed_index])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[0], bpm_name[1], [0, 0, 0, 0, t2, t1]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bpm_name[0], bpm_name[2], bpm_name[probed_index], MADTwiss, phase, plane, phase_err[0], phase_err[2], phase_err[probed_index])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[0], bpm_name[2], [0, 0, 0, t2, 0, t1]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_right(bpm_name[1], bpm_name[2], bpm_name[probed_index], MADTwiss, phase, plane, phase_err[1], phase_err[2], phase_err[probed_index])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[1], bpm_name[2], [0, 0, 0, t2, t1, 0]])
+
+    for n in mid_combo:
+        tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[n[0]], bpm_name[probed_index], bpm_name[n[1]], MADTwiss, phase, plane, phase_err[n[0]], phase_err[probed_index], phase_err[n[1]])
+        t_matrix_row = [0] * (RANGE-1)
+        t_matrix_row[RANGE-2 - n[0]] = t1
+        t_matrix_row[n[1] - 1 - probed_index] = t2
+        candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[n[0]], bpm_name[n[1]], t_matrix_row])
+
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[0], bpm_name[probed_index], bpm_name[4], MADTwiss, phase, plane, phase_err[0], phase_err[probed_index], phase_err[4])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[0], bpm_name[4], [t2, 0, 0, 0, 0, t1]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[1], bpm_name[probed_index], bpm_name[4], MADTwiss, phase, plane, phase_err[1], phase_err[probed_index], phase_err[4])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[1], bpm_name[4], [t2, 0, 0, 0, t1, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[2], bpm_name[probed_index], bpm_name[4], MADTwiss, phase, plane, phase_err[2], phase_err[probed_index], phase_err[4])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[2], bpm_name[4], [t2, 0, 0, t1, 0, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[0], bpm_name[probed_index], bpm_name[5], MADTwiss, phase, plane, phase_err[0], phase_err[probed_index], phase_err[5])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[0], bpm_name[5], [0, t2, 0, 0, 0, t1]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[1], bpm_name[probed_index], bpm_name[5], MADTwiss, phase, plane, phase_err[1], phase_err[probed_index], phase_err[5])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[1], bpm_name[5], [0, t2, 0, 0, t1, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[2], bpm_name[probed_index], bpm_name[5], MADTwiss, phase, plane, phase_err[2], phase_err[probed_index], phase_err[5])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[2], bpm_name[5], [0, t2, 0, t1, 0, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[0], bpm_name[probed_index], bpm_name[6], MADTwiss, phase, plane, phase_err[0], phase_err[probed_index], phase_err[6])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[0], bpm_name[6], [0, 0, t2, 0, 0, t1]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[1], bpm_name[probed_index], bpm_name[6], MADTwiss, phase, plane, phase_err[1], phase_err[probed_index], phase_err[6])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[1], bpm_name[6], [0, 0, t2, 0, t1, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_mid(bpm_name[2], bpm_name[probed_index], bpm_name[6], MADTwiss, phase, plane, phase_err[2], phase_err[probed_index], phase_err[6])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[2], bpm_name[6], [0, 0, t2, t1, 0, 0]])
+
+    for n in right_combo:
+        tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bpm_name[probed_index], bpm_name[n[0]], bpm_name[n[1]], MADTwiss, phase, plane, phase_err[probed_index], phase_err[n[0]], phase_err[n[1]])
+        t_matrix_row = [0] * (RANGE-1)
+        t_matrix_row[n[0] - 1 - probed_index] = t1
+        t_matrix_row[n[1] - 1 - probed_index] = t2
+        candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[n[0]], bpm_name[n[1]], t_matrix_row])
+
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bpm_name[probed_index], bpm_name[4], bpm_name[5], MADTwiss, phase, plane, phase_err[probed_index], phase_err[4], phase_err[5])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[4], bpm_name[5], [t1, t2, 0, 0, 0, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bpm_name[probed_index], bpm_name[4], bpm_name[6], MADTwiss, phase, plane, phase_err[probed_index], phase_err[4], phase_err[6])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[4], bpm_name[6], [t1, 0, t2, 0, 0, 0]])
+    # tbet, tbetstd, talf, talfstd, mdlerr, t1, t2 = BetaFromPhase_BPM_left(bpm_name[probed_index], bpm_name[5], bpm_name[6], MADTwiss, phase, plane, phase_err[probed_index], phase_err[5], phase_err[6])
+    # candidates.append([tbetstd, tbet, talfstd, talf, mdlerr, bpm_name[5], bpm_name[6], [0, t1, t2, 0, 0, 0]])
+
     sort_cand = sorted(candidates, key=lambda x: x[4])
     if sort_cand[0][0] > 0 and  not use_only_three_bpms_for_beta_from_phase:  # TODO: Check if sort_cand condition can be removed
-        return [sort_cand[i] for i in range(NUM_BPM_COMBOS)], bn4, M
+        return [sort_cand[i] for i in range(NUM_BPM_COMBOS)], bpm_name[probed_index], M
     else:
-        return candidates[2], candidates[5], candidates[12], bn4, M
+        return candidates[2], candidates[5], candidates[12], bpm_name[probed_index], M
 
 
 def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for_beta_from_phase):
