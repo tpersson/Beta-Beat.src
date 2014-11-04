@@ -427,8 +427,8 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
             name of the probed BPM
     '''
 
-    NUM_BPM_COMBOS = 1
-    RANGE = 11
+    NUM_BPM_COMBOS = 3
+    RANGE = 7
     probed_index = int((RANGE-1)/2.)
 
     if 7 > len(commonbpms):
@@ -467,14 +467,14 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
                 phase_err[i] = phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]])
             elif i > probed_index:
                 phase_err[i] = phase["".join([plane, bpm_name[probed_index], bpm_name[i]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]])
-        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index - 1)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index-1)])
+        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETX[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index)])
     if plane == 'V':
         for i in range(RANGE):
             if i < probed_index:
                 phase_err[i] = phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]])
             if i > probed_index:
                 phase_err[i] = phase["".join([plane, bpm_name[probed_index], bpm_name[i]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]])
-        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index - 1)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index - 1)])
+        phase_err[probed_index] = min([phase["".join([plane, bpm_name[i], bpm_name[probed_index]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[i]]]) for i in range(probed_index)] + [phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + 1 + i]])][1] / np.sqrt(1 + MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index]]] / MADTwiss.BETY[MADTwiss.indx[bpm_name[probed_index + 1 + i]]]) for i in range(probed_index)])
     # if plane == 'H':
 
     #     p6 = min([phase["".join([plane, bn1, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn1]]), phase["".join([plane, bn2, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn2]]), phase["".join([plane, bn3, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn3]]), phase["".join([plane, bn4, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn4]]), phase["".join([plane, bn5, bn6])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn5]]), phase["".join([plane, bn6, bn7])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn7]]), phase["".join([plane, bn6, bn8])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn8]]), phase["".join([plane, bn6, bn9])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn9]]), phase["".join([plane, bn6, bn10])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn10]]), phase["".join([plane, bn6, bn11])][1] / np.sqrt(1 + MADTwiss.BETX[MADTwiss.indx[bn6]] / MADTwiss.BETX[MADTwiss.indx[bn11]])])
@@ -504,6 +504,8 @@ def get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i
                 M[k][l] = phase["".join([plane, bpm_name[probed_index], bpm_name[probed_index + k + 1]])][1]**2
             elif k == l and k >= probed_index:
                 M[k][l] = phase["".join([plane, bpm_name[RANGE - 2 - k], bpm_name[probed_index]])][1]**2
+    #        elif (k < probed_index and l >= probed_index) or (k >= probed_index and l < probed_index):
+     #           M[k][l] = - phase_err[probed_index]**2
             else:
                 M[k][l] = phase_err[probed_index]**2
 
@@ -638,7 +640,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         alfi = 0 #(alfa_beta_b1[3] + alfa_beta_b2[3] + alfa_beta_b3[3]) / 3.
 
         alfstd = 0 #math.sqrt(alfa_beta_b1[2]**2 + alfa_beta_b2[2]**2 + alfa_beta_b3[2]**2)/math.sqrt(3.)
-        # betstd = math.sqrt(sum([alfa_beta[i][0]**2 for i in range(len(alfa_beta))])) / math.sqrt(len(alfa_beta))
+        betstd = 0 #math.sqrt(sum([alfa_beta[i][0]**2 for i in range(len(alfa_beta))])) / math.sqrt(len(alfa_beta))
 
         # try:
         #     beterr = math.sqrt((alfa_beta_b1[1]**2 + alfa_beta_b2[1]**2 + alfa_beta_b3[1]**2)/len(alfa_beta) - beti**2.)
@@ -660,7 +662,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
             try:
                 V = np.linalg.pinv(V2)
             except:
-                V = np.zeros((range(len(alfa_beta)), range(len(alfa_beta))))
+                V = np.zeros([len(alfa_beta), len(alfa_beta)])
 
             w = np.zeros(len(alfa_beta))
             V_row_sum = V.sum(axis=1, dtype='float')
@@ -674,6 +676,8 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
                 for i in range(len(alfa_beta)):
                     for j in range(len(alfa_beta)):
                         betstd = betstd + w[i] * w[j] * V2.item(i, j)
+                        if probed_bpm_name == 'BPM.20L1.B1':
+                            print betstd 
                 betstd = np.sqrt(float(betstd))
             else:
                 betstd = DEFAULT_WRONG_BETA
