@@ -631,9 +631,9 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     elif not use_only_three_bpms_for_beta_from_phase:
         print >> sys.stderr, "WARNING: Cannot find bet_deviations.npy file!"
 
-    # All_syst = np.load('/afs/cern.ch/work/l/langner2/alangner/syst_cov/testrun2/bet_deviations.npy')
+    All_syst = np.load('/afs/cern.ch/work/l/langner2/alangner/syst_cov/testrun2/bet_deviations.npy')
     # All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB1_4TeV/bet_deviations.npy')
-    All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB1_ATS20_4TeV/bet_deviations.npy')
+    # All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB1_ATS20_4TeV/bet_deviations.npy')
 
 
     delbeta = []
@@ -642,9 +642,9 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         alfa_beta, probed_bpm_name, M = get_best_three_bpms_with_beta_and_alfa(MADTwiss, phase, plane, commonbpms, i, use_only_three_bpms_for_beta_from_phase, n, m)
 
         beti = 0 #sum([alfa_beta[i][1] for i in range(len(alfa_beta))]) / len(alfa_beta)
-        alfi = 0 #(alfa_beta_b1[3] + alfa_beta_b2[3] + alfa_beta_b3[3]) / 3.
+        alfi = sum([alfa_beta[i][3] for i in range(len(alfa_beta))]) / len(alfa_beta)
 
-        alfstd = 0 #math.sqrt(alfa_beta_b1[2]**2 + alfa_beta_b2[2]**2 + alfa_beta_b3[2]**2)/math.sqrt(3.)
+        alfstd = math.sqrt(sum([alfa_beta[i][2]**2 for i in range(len(alfa_beta))])) / math.sqrt(len(alfa_beta))
         betstd = 0 #math.sqrt(sum([alfa_beta[i][0]**2 for i in range(len(alfa_beta))])) / math.sqrt(len(alfa_beta))
 
         # try:
@@ -653,7 +653,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
         #     beterr = 0
 
         try:
-            alferr = 0 #math.sqrt((alfa_beta_b1[3]**2 + alfa_beta_b2[3]**2 + alfa_beta_b3[3]**2)/3.-alfi**2.)
+            alferr = math.sqrt(sum([alfa_beta[i][3]**2 for i in range(len(alfa_beta))])/len(alfa_beta)-alfi**2.)
         except ValueError:
             alferr = 0
         if plane == 'H':
@@ -703,7 +703,7 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
             V_inv_sum = V_inv.sum(dtype='float')
             betstd = 0
             beterr = 0
-            alfi = 0
+            # alfi = 0
             if V_inv_sum != 0:
                 for i in range(len(w)):
                     w[i] = V_inv_row_sum[i] / V_inv_sum
@@ -717,14 +717,14 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
                     for j in range(len(alfa_beta)):
                         beterr = beterr + w[i] * w[j] * V_syst.item(i, j)
                 beterr = np.sqrt(float(beterr))
-                for i in range(len(alfa_beta)):
-                    for j in range(len(alfa_beta)):
-                        alfi = alfi + V_inv.item(i, j)
-                alfi = np.sqrt(float(1 / alfi))
+                # for i in range(len(alfa_beta)):
+                    # for j in range(len(alfa_beta)):
+                        # alfi = alfi + V_inv.item(i, j)
+                # alfi = np.sqrt(float(1 / alfi))
             else:
                 betstd = DEFAULT_WRONG_BETA
                 beterr = DEFAULT_WRONG_BETA
-                alfi = DEFAULT_WRONG_BETA
+                # alfi = DEFAULT_WRONG_BETA
 
             # if systematic_errors_found:
             #     syserr = np.zeros(len(alfa_beta))
