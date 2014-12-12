@@ -631,7 +631,8 @@ def beta_from_phase(MADTwiss, ListOfFiles, phase, plane, use_only_three_bpms_for
     elif not use_only_three_bpms_for_beta_from_phase:
         print >> sys.stderr, "WARNING: Cannot find bet_deviations.npy file!"
 
-    All_syst = np.load('/afs/cern.ch/work/l/langner2/alangner/syst_cov/testrun2/bet_deviations.npy')
+    # All_syst = np.load('/afs/cern.ch/work/l/langner2/alangner/syst_cov/testrun2/bet_deviations.npy')
+    All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB2_60cm_4TeV/bet_deviations.npy')
     # All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB1_4TeV/bet_deviations.npy')
     # All_syst = np.load('/afs/cern.ch/work/l/langner/alangner/Syst_covariance_matrices/LHCB1_ATS20_4TeV/bet_deviations.npy')
 
