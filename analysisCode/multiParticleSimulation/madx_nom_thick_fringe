@@ -1,0 +1,15 @@
+
+call file="/afs/cern.ch/work/f/fcarlier/public/Beta-Beat.src/analysisCode/madx_codes/ptc_codes/nominal_thick_mps.madx"; 
+
+ptc_create_universe;
+ptc_create_layout,model=2,method=2,nst=3; !,exact,resplit,thin=.0005,xbend=.0005;
+ptc_align; 
+ptc_setswitch, fringe = true;
+
+ptc_start, x=0.00318093, px=-0.00000000, y=0.00301348, py=-0.00000000;
+call, file="/afs/cern.ch/work/f/fcarlier/public/Beta-Beat.src/analysisCode/madx_codes/static_files/ptcobserveLIST";
+ptc_track,icase=5,closed_orbit,dump,turns=1000,norm_no=5,ELEMENT_BY_ELEMENT, onetable, file='/afs/cern.ch/work/f/fcarlier/public/Beta-Beat.src/analysisCode/multiParticleSimulation/job0001/track';
+ptc_track_end;
+ptc_end;
+
+stop;

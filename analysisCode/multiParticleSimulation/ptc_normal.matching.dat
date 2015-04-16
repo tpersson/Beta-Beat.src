@@ -1,0 +1,19 @@
+@ NAME             %14s "NORMAL_RESULTS"
+@ TYPE             %10s "NORMAL_RES"
+@ TITLE            %08s "no-title"
+@ ORIGIN           %22s "MAD-X 5.02.00 Linux 64"
+@ DATE             %08s "25/03/15"
+@ TIME             %08s "17.55.37"
+* NAME                   ORDER1     ORDER2     ORDER3     ORDER4              VALUE 
+$ %s                         %d         %d         %d         %d                %le 
+ "Q1"                         0          0          0          0       0.2805781353
+ "Q2"                         0          0          0          0       0.3112848728
+ "DQ1"                        1          0          0          0        2.022358009
+ "DQ2"                        1          0          0          0        1.995718407
+ "ANHX"                       1          0          0          0        399.6070298
+ "ANHY"                       0          1          0          0        401.3869294
+ "ANHX"                       0          1          0          0       -3200.331715
+ "ANHX"                       2          0          0          0   -1.767731405e+10
+ "ANHY"                       0          2          0          0   -2.003109816e+10
+ "ANHX"                       0          2          0          0         9380459435
+ "ANHY"                       2          0          0          0         7434842735
