@@ -79,7 +79,7 @@ def calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, file
             q1_temp.append(np.mean(twiss_file.TUNEX))
         q1_temp = np.mean(q1_temp)
 
-        [phase_d.ph_x, tune_d.q1, tune_d.mux, bpmsx] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_x, q1_temp, 'H')
+        [phase_d.ph_x, tune_d.q1, tune_d.mux, bpmsx] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_x, q1_temp, 'H', getllm_d.list_of_bad_bpms_x)
         if not twiss_d.has_zero_dpp_y():
             print 'liny missing and output x only ...'
 
@@ -91,16 +91,16 @@ def calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, file
             q2_temp.append(np.mean(twiss_file.TUNEY))
         q2_temp = np.mean(q2_temp)
 
-        [phase_d.ph_y, tune_d.q2, tune_d.muy, bpmsy] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_y, q2_temp, 'V')
+        [phase_d.ph_y, tune_d.q2, tune_d.muy, bpmsy] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_y, q2_temp, 'V', getllm_d.list_of_bad_bpms_y)
         if not twiss_d.has_zero_dpp_x():
             print 'linx missing and output y only ...'
 
     #---- Re-run GetPhase to fix the phase shift by Q for exp data of LHC
     if getllm_d.lhc_phase == "1":
         if twiss_d.has_zero_dpp_x():
-            [phase_d.ph_x, tune_d.q1, tune_d.mux, bpmsx] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_x, tune_d.q1, 'H')
+            [phase_d.ph_x, tune_d.q1, tune_d.mux, bpmsx] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_x, tune_d.q1, 'H', getllm_d.list_of_bad_bpms_x)
         if twiss_d.has_zero_dpp_y():
-            [phase_d.ph_y, tune_d.q2, tune_d.muy, bpmsy] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_y, tune_d.q2, 'V')
+            [phase_d.ph_y, tune_d.q2, tune_d.muy, bpmsy] = get_phases(getllm_d, mad_ac, twiss_d.zero_dpp_y, tune_d.q2, 'V', getllm_d.list_of_bad_bpms_y)
 
     #---- ac to free phase from eq and the model
     if getllm_d.with_ac_calc:
@@ -340,7 +340,7 @@ def calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, file
 #                         tfs_file.add_table_row(list_row_entries)
                 
 
-    return phase_d, tune_d
+    return phase_d, tune_d, bpmsx, bpmsy
 # END calculate_phase ------------------------------------------------------------------------------
 
 def calculate_total_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad_ac, files_dict):
@@ -618,7 +618,7 @@ def _get_phases_total(mad_twiss, src_files, tune, plane, beam_direction, accel, 
 #IMPORTANT_PAIRS = {"BPMYA.5R6.B2": ["BPMWB.4R5.B2", "BPMWB.4R1.B2"]}
 
 
-def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
+def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane, bad_bpms):
     """
     Calculates phase.
     tune_q will be used to fix the phase shift in LHC.
@@ -627,6 +627,9 @@ def get_phases(getllm_d, mad_twiss, ListOfFiles, tune_q, plane):
     commonbpms = Utilities.bpm.intersect(ListOfFiles)
     commonbpms = Utilities.bpm.model_intersect(commonbpms, mad_twiss)
     commonbpms = JPARC_intersect(plane, getllm_d, commonbpms)
+    print " cllleeeeeaaaaaannnnnnnnnnniiiiiiiinnnngggg bad bpms"
+    print bad_bpms
+    commonbpms = [bpm for bpm in commonbpms if bpm[1] not in bad_bpms]
     length_commonbpms = len(commonbpms)
 
     if length_commonbpms < 3:

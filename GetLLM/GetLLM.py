@@ -311,16 +311,16 @@ def main(outputpath,
         #-------- START Phase for beta calculation with best knowledge model in ac phase compensation
         temp_dict = copy.deepcopy(files_dict)
        
-        phase_d_bk, _ = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_best_knowledge, mad_ac_best_knowledge, mad_elem, temp_dict)
+        phase_d_bk, _, _, _ = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_best_knowledge, mad_ac_best_knowledge, mad_elem, temp_dict)
        
         #-------- START Phase
-        phase_d, tune_d = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, files_dict)
+        phase_d, tune_d, commonpbms_x, commonbpms_y = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, files_dict)
 
         #-------- START Total Phase
         algorithms.phase.calculate_total_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad_ac, files_dict)
 
         #-------- START Beta
-        beta_d = algorithms.beta.calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d_bk, mad_twiss, mad_ac, mad_elem, mad_elem_centre, mad_best_knowledge, mad_ac_best_knowledge, files_dict)
+        beta_d = algorithms.beta.calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d_bk, mad_twiss, mad_ac, mad_elem, mad_elem_centre, mad_best_knowledge, mad_ac_best_knowledge, files_dict, commonpbms_x, commonbpms_y)
 
         #------- START beta from amplitude
         beta_d = algorithms.beta.calculate_beta_from_amplitude(getllm_d, twiss_d, tune_d, phase_d, beta_d, mad_twiss, mad_ac, files_dict)
@@ -1023,7 +1023,8 @@ class _GetllmData(object):
         self.with_ac_calc = False
         self.acdipole = "None"
         self.important_pairs = {}
-
+        self.list_of_bad_bpms_x = ["BPMSX.4L2.B1", "BPMS.2R8.B2", "BPMSX.4L8.B2", "BPM.23L6.B1", "BPM.22R8.B1", "BPM.16R3.B1", "BPM.14L4.B1",  "BPM.20L2.B2", "BPM.6L1.B2", "BPM.24R2.B2", "BPM.16L5.B2"]
+        self.list_of_bad_bpms_y = ["BPM.22R8.B1", "BPMSX.4L2.B1", "BPM.23L6.B1", "BPMWI.4R8.B2", "BPM.31R2.B2", "BPM.20L2.B2", "BPM.14R4.B2"]
     def set_outputpath(self, outputpath):
         ''' Sets the outputpath and creates directories if they not exist.
 

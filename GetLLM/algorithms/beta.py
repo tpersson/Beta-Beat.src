@@ -149,7 +149,7 @@ def _write_getbeta_out(twiss_d_zero_dpp, q1, q2, mad_ac, number_of_bpms, range_o
 
 def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d,
                               mad_twiss, mad_ac, mad_elem, mad_elem_centre, mad_best_knowledge, mad_ac_best_knowledge,
-                              files_dict):
+                              files_dict, commonbpms_x, commonbpms_y):
     '''
     
     Calculates beta and fills the following TfsFiles:
@@ -198,7 +198,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d,
         print_("Calculate beta from phase for plane " + _plane_char, ">")
         data, rmsbbx, bpms, error_method = beta_from_phase(mad_ac_best_knowledge, mad_elem, mad_elem_centre,
                                                            twiss_d.zero_dpp_x, phase_d.ph_x, 'H',
-                                                           getllm_d, debugfile)
+                                                           getllm_d, debugfile, commonbpms_x)
         beta_d.x_phase = {}
         beta_d.x_phase['DPP'] = 0
         tfs_file = files_dict['getbetax.out']
@@ -218,7 +218,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d,
 
                 dataf, rmsbbxf, bpmsf, error_method = beta_from_phase(mad_best_knowledge, mad_elem, mad_elem_centre,
                                                                       twiss_d.zero_dpp_x, phase_d.x_f, 'H',
-                                                                      getllm_d, debugfile)
+                                                                      getllm_d, debugfile, commonbpms_x)
                 tfs_file = files_dict['getbetax_free.out']
                 beta_d.x_phase_f = {}
                 _write_getbeta_out(twiss_d.zero_dpp_x, tune_d.q1f, tune_d.q2f, mad_twiss, getllm_d.number_of_bpms, getllm_d.range_of_bpms, beta_d.x_phase_f,
@@ -252,7 +252,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d,
 
         data, rmsbby, bpms, error_method = beta_from_phase(mad_ac_best_knowledge, mad_elem, mad_elem_centre,
                                                            twiss_d.zero_dpp_y, phase_d.ph_y, 'V',
-                                                           getllm_d, debugfile)
+                                                           getllm_d, debugfile, commonbpms_y)
         beta_d.y_phase = {}
         beta_d.y_phase['DPP'] = 0
         tfs_file = files_dict['getbetay.out']
@@ -273,7 +273,7 @@ def calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d,
             try:
                 dataf, rmsbbyf, bpmsf, error_method = beta_from_phase(mad_best_knowledge, mad_elem, mad_elem_centre,
                                                                       twiss_d.zero_dpp_y, phase_d.y_f, 'V',
-                                                                      getllm_d, debugfile)
+                                                                      getllm_d, debugfile, commonbpms_y)
                 
                 tfs_file = files_dict['getbetay_free.out']
                 beta_d.y_phase_f = {}
@@ -545,7 +545,7 @@ def calculate_beta_from_amplitude(getllm_d, twiss_d, tune_d, phase_d, beta_d, ma
 # END calculate_beta_from_amplitude ----------------------------------------------------------------
 
 
-def beta_from_phase(madTwiss, madElements, madElementsCentre, ListOfFiles, phase, plane, getllm_d, debugfile):
+def beta_from_phase(madTwiss, madElements, madElementsCentre, ListOfFiles, phase, plane, getllm_d, debugfile, commonbpms):
     '''
     Calculate the beta function from phase advances
     If range of BPMs is sufficiently large use averaging with weighted mean. The weights are determinde using either the
@@ -596,11 +596,6 @@ def beta_from_phase(madTwiss, madElements, madElementsCentre, ListOfFiles, phase
     if phase == {}:
         return [{}, 0.0, {}, errors_method]
 
-    commonbpms = Utilities.bpm.intersect(ListOfFiles)
-    commonbpms = Utilities.bpm.model_intersect(commonbpms, madTwiss)
-    commonbpms = JPARC_intersect(plane, getllm_d, commonbpms)
-
-    
     errorfile = None
     if not getllm_d.use_only_three_bpms_for_beta_from_phase:
         errorfile = create_errorfile(getllm_d.errordefspath, madTwiss, madElements, madElementsCentre, commonbpms, plane, getllm_d.accel)
