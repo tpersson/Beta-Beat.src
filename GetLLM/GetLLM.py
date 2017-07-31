@@ -95,6 +95,7 @@ import algorithms.interaction_point
 import algorithms.chi_terms
 import Utilities.iotools
 
+from time import time
 import copy
 
 from numpy import array
@@ -131,6 +132,20 @@ CALIBRATION     = None  #@IgnorePep8
 ERRORDEFS       = None  #@IgnorePep8
 NPROCESSES      = 16    #@IgnorePep8
 USE_ONLY_THREE_BPMS_FOR_BETA_FROM_PHASE   = 0    #@IgnorePep8
+
+
+
+
+
+# DEBUGGING
+def print_time(index, t):
+    print "\33[38;2;255;220;50m---------------------------------------------{:.3f}\33[0m".format(t)
+    
+    f = open("/afs/cern.ch/work/a/awegsche/public/44_acc_cls_perf/master.txt", "a")
+    f.write("{} {:.7f}\n".format(index, t))
+    f.close()
+
+
 
 #===================================================================================================
 # _parse_args()-function
@@ -290,6 +305,8 @@ def main(outputpath,
 
     # Copy calibration files calibration_x/y.out from calibration_dir_path to outputpath
     calibration_twiss = _copy_calibration_files(outputpath, calibration_dir_path)
+    
+    print_time("BEFORE_ANALYSE_SRC", time() - __getllm_starttime)
     twiss_d, files_dict = _analyse_src_files(getllm_d, twiss_d, files_to_analyse, nonlinear, tbtana, files_dict, use_average, calibration_twiss)
 
     # Load tunes from twiss instances, depending on with_ac_calc
@@ -311,16 +328,21 @@ def main(outputpath,
         #-------- START Phase for beta calculation with best knowledge model in ac phase compensation
         temp_dict = copy.deepcopy(files_dict)
        
+        print_time("BEFORE_PHASE", time() - __getllm_starttime)
+
         phase_d_bk, _ = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_best_knowledge, mad_ac_best_knowledge, mad_elem, temp_dict)
+        print_time("AFTER_PHASE_BK", time() - __getllm_starttime)
        
         #-------- START Phase
         phase_d, tune_d = algorithms.phase.calculate_phase(getllm_d, twiss_d, tune_d, mad_twiss, mad_ac, mad_elem, files_dict)
 
         #-------- START Total Phase
         algorithms.phase.calculate_total_phase(getllm_d, twiss_d, tune_d, phase_d, mad_twiss, mad_ac, files_dict)
+        print_time("AFTER_PHASE", time() - __getllm_starttime)
 
         #-------- START Beta
         beta_d = algorithms.beta.calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d_bk, mad_twiss, mad_ac, mad_elem, mad_elem_centre, mad_best_knowledge, mad_ac_best_knowledge, files_dict)
+        print_time("AFTER_BETA_FROM_PHASE", time() - __getllm_starttime)
 
         #------- START beta from amplitude
         beta_d = algorithms.beta.calculate_beta_from_amplitude(getllm_d, twiss_d, tune_d, phase_d, beta_d, mad_twiss, mad_ac, files_dict)
@@ -1128,6 +1150,10 @@ def _start():
     Starter function to avoid polluting global namespace with variables options,args.
     Before the following code was after 'if __name__=="__main__":'
     '''
+    
+    global __getllm_starttime
+    __getllm_starttime = time()
+    
     options = _parse_args()
     main(outputpath=options.output,
          dict_file=options.dict,
