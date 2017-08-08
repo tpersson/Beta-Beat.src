@@ -342,7 +342,10 @@ def main(outputpath,
 
         #-------- START Beta
         beta_d = algorithms.beta.calculate_beta_from_phase(getllm_d, twiss_d, tune_d, phase_d_bk, mad_twiss, mad_ac, mad_elem, mad_elem_centre, mad_best_knowledge, mad_ac_best_knowledge, files_dict)
-        print_time("AFTER_BETA_FROM_PHASE", time() - __getllm_starttime)
+        if use_only_three_bpms_for_beta_from_phase:
+            print_time("AFTER_BETA_FROM_PHASE", time() - __getllm_starttime)
+        else:
+            print_time("AFTER_A_NBPM", time() - __getllm_starttime)
 
         #------- START beta from amplitude
         beta_d = algorithms.beta.calculate_beta_from_amplitude(getllm_d, twiss_d, tune_d, phase_d, beta_d, mad_twiss, mad_ac, files_dict)
